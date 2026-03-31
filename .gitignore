@@ -1,0 +1,9 @@
+__pycache__/
+.pytest_cache/
+.venv/
+.vercel/
+.DS_Store
+*.pyc
+results.tsv
+outputs/*.md
+outputs/*.json

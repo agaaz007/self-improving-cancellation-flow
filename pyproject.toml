@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cta-autoresearch"
+version = "0.1.0"
+description = "Synthetic persona and CTA optimization lab for cancellation flows."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["openai>=2.30.0"]
+
+[project.scripts]
+cta-research = "cta_autoresearch.cli:main"
+cta-lab = "cta_autoresearch.lab_cli:main"
+cta-research-lab = "cta_autoresearch.lab_cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

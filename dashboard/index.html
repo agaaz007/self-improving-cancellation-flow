@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CTA Autoresearch Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Signal Room</p>
+          <h1>Exit-flow strategy lab for analysts</h1>
+          <p class="hero-text">
+            Configure the size of the search, the richness of the cohort, and the ideation
+            model behind the research swarm, then inspect exactly why a strategy wins.
+          </p>
+          <div class="run-status" id="run-status"></div>
+        </div>
+        <div class="hero-metrics" id="hero-metrics"></div>
+      </header>
+
+      <nav class="section-nav">
+        <a href="#controls">Research Controls</a>
+        <a href="#runs">Runs</a>
+        <a href="#search-space">Search Space</a>
+        <a href="#leaderboard">Leaderboard</a>
+        <a href="#segments">Segments</a>
+        <a href="#personas">Personas</a>
+        <a href="#ideas">Idea Agents</a>
+        <a href="#workbench">Workbench</a>
+      </nav>
+
+      <main class="layout-grid">
+        <section class="panel panel-wide" id="controls">
+          <div class="panel-header">
+            <h2>Research Controls</h2>
+            <p>Adjust exploration depth, persona richness, model selection, and validation budget.</p>
+          </div>
+          <div class="controls-grid">
+            <form class="control-form" id="research-form">
+              <p class="control-group-title">Core run</p>
+              <label>Execution mode <select id="setting-execution-mode" name="execution_mode"></select></label>
+              <label>Strategy depth <select id="setting-depth" name="strategy_depth"></select></label>
+              <label>Persona richness <select id="setting-richness" name="persona_richness"></select></label>
+              <label>Ideation model <select id="setting-model" name="model_name"></select></label>
+              <p class="control-group-title">Persona lab</p>
+              <label>Population
+                <input id="setting-population" name="population" type="range" min="20" max="600" step="10" />
+                <span class="range-value" id="setting-population-value"></span>
+              </label>
+              <label>Idea agents
+                <input id="setting-ideation-agents" name="ideation_agents" type="range" min="1" max="8" step="1" />
+                <span class="range-value" id="setting-ideation-agents-value"></span>
+              </label>
+              <label>Validation budget
+                <input id="setting-validation-budget" name="validation_budget" type="range" min="40" max="4000" step="40" />
+                <span class="range-value" id="setting-validation-budget-value"></span>
+              </label>
+              <label>Discount step
+                <input id="setting-discount-step" name="discount_step" type="range" min="5" max="25" step="5" />
+                <span class="range-value" id="setting-discount-step-value"></span>
+              </label>
+              <label>Discount floor
+                <input id="setting-discount-floor" name="discount_floor" type="range" min="0" max="100" step="5" />
+                <span class="range-value" id="setting-discount-floor-value"></span>
+              </label>
+              <label>Discount ceiling
+                <input id="setting-discount-ceiling" name="discount_ceiling" type="range" min="0" max="100" step="5" />
+                <span class="range-value" id="setting-discount-ceiling-value"></span>
+              </label>
+              <p class="control-group-title">Search breadth</p>
+              <label>Grounding breadth
+                <input id="setting-grounding-limit" name="grounding_limit" type="range" min="1" max="7" step="1" />
+                <span class="range-value" id="setting-grounding-limit-value"></span>
+              </label>
+              <label>Treatment breadth
+                <input id="setting-treatment-limit" name="treatment_limit" type="range" min="1" max="7" step="1" />
+                <span class="range-value" id="setting-treatment-limit-value"></span>
+              </label>
+              <label>Friction breadth
+                <input id="setting-friction-limit" name="friction_limit" type="range" min="1" max="6" step="1" />
+                <span class="range-value" id="setting-friction-limit-value"></span>
+              </label>
+              <label>Ideas per agent
+                <input id="setting-ideas-per-agent" name="idea_proposals_per_agent" type="range" min="1" max="6" step="1" />
+                <span class="range-value" id="setting-ideas-per-agent-value"></span>
+              </label>
+              <label>Persona shortlist multiplier
+                <input id="setting-shortlist-multiplier" name="persona_shortlist_multiplier" type="range" min="1" max="8" step="1" />
+                <span class="range-value" id="setting-shortlist-multiplier-value"></span>
+              </label>
+              <label>Segment focus limit
+                <input id="setting-segment-focus-limit" name="segment_focus_limit" type="range" min="1" max="10" step="1" />
+                <span class="range-value" id="setting-segment-focus-limit-value"></span>
+              </label>
+              <p class="control-group-title">Validation runtime</p>
+              <label>API batch size
+                <input id="setting-api-batch-size" name="api_batch_size" type="range" min="1" max="12" step="1" />
+                <span class="range-value" id="setting-api-batch-size-value"></span>
+              </label>
+              <label>Reasoning effort <select id="setting-reasoning-effort" name="openai_reasoning_effort"></select></label>
+              <label>Archetype templates
+                <input id="setting-archetype-template-count" name="archetype_template_count" type="number" min="0" max="12" step="1" />
+              </label>
+              <label>Persona blend cadence
+                <input id="setting-persona-blend-every" name="persona_blend_every" type="number" min="0" max="20" step="1" />
+              </label>
+              <label>Leaderboard size
+                <input id="setting-top-n" name="top_n" type="range" min="5" max="60" step="1" />
+                <span class="range-value" id="setting-top-n-value"></span>
+              </label>
+              <label>Seed <input id="setting-seed" name="seed" type="number" min="1" step="1" /></label>
+              <button class="run-button" type="submit">Run deeper research</button>
+            </form>
+            <div class="control-sidebar">
+              <div class="stack" id="run-summary"></div>
+              <div class="stack" id="warning-stack"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel panel-wide" id="runs">
+          <div class="panel-header">
+            <h2>Run Console</h2>
+            <p>Track backend execution, inspect progress, and switch between completed results.</p>
+          </div>
+          <div class="run-center">
+            <div class="run-live-column">
+              <div id="active-run-card"></div>
+              <div class="run-progress-shell">
+                <div class="run-progress-bar">
+                  <span id="run-progress-fill"></span>
+                </div>
+                <div class="run-progress-meta" id="run-progress-meta"></div>
+              </div>
+              <div class="run-log" id="run-timeline"></div>
+            </div>
+            <div class="run-history-column">
+              <div class="run-history-tabs" id="run-history-tabs"></div>
+              <div class="run-history-detail" id="run-history-detail"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel panel-wide" id="how-it-works">
+          <div class="panel-header">
+            <h2>How It Works</h2>
+            <p>The pipeline from behavioral profile to recommended exit flow.</p>
+          </div>
+          <div class="flow-grid">
+            <article class="flow-card">
+              <span>1</span>
+              <h3>Feature derivation</h3>
+              <p>Turn analytics-style profiles into interpretable signals like urgency, proof need, trust sensitivity, and discount affinity.</p>
+            </article>
+            <article class="flow-card">
+              <span>2</span>
+              <h3>Synthetic cohort</h3>
+              <p>Generate richer persona populations from seed profiles, archetypes, and hybrid variants.</p>
+            </article>
+            <article class="flow-card">
+              <span>3</span>
+              <h3>Idea swarm</h3>
+              <p>Run multiple specialist agents that propose new structured save strategies before validation.</p>
+            </article>
+            <article class="flow-card">
+              <span>4</span>
+              <h3>Validation + scoring</h3>
+              <p>Score the chosen candidate budget on retention potential, revenue preservation, and trust-safety.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel" id="search-space">
+          <div class="panel-header">
+            <h2>Search Space</h2>
+            <p>What the optimizer is allowed to mix and match.</p>
+          </div>
+          <div id="dimension-cards" class="dimension-cards"></div>
+          <div class="mini-bars" id="top-patterns"></div>
+        </section>
+
+        <section class="panel" id="leaderboard">
+          <div class="panel-header">
+            <h2>Leaderboard</h2>
+            <p>Top-scoring strategies across the current cohort.</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Strategy</th>
+                  <th>Composite</th>
+                  <th>Retention</th>
+                  <th>Revenue</th>
+                  <th>Trust</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboard-body"></tbody>
+            </table>
+          </div>
+          <div class="stack" id="best-non-discount"></div>
+        </section>
+
+        <section class="panel" id="segments">
+          <div class="panel-header">
+            <h2>Segment Playbooks</h2>
+            <p>Different cohorts want different save attempts.</p>
+          </div>
+          <div class="segment-grid" id="segment-grid"></div>
+        </section>
+
+        <section class="panel" id="personas">
+          <div class="panel-header">
+            <h2>Persona Drilldown</h2>
+            <p>Inspect the synthetic and seed personas driving the results.</p>
+          </div>
+          <div class="persona-layout">
+            <aside class="persona-list" id="persona-list"></aside>
+            <div class="persona-detail" id="persona-detail"></div>
+          </div>
+        </section>
+
+        <section class="panel" id="ideas">
+          <div class="panel-header">
+            <h2>Idea Agents</h2>
+            <p>The structured strategies proposed by the current ideation swarm.</p>
+          </div>
+          <div class="idea-grid" id="idea-grid"></div>
+        </section>
+
+        <section class="panel panel-wide" id="workbench">
+          <div class="panel-header">
+            <h2>Strategy Workbench</h2>
+            <p>Explore the validated candidate universe and inspect exact combinations.</p>
+          </div>
+          <div class="workbench-grid">
+            <div class="filters">
+              <label>Message angle <select id="filter-message"></select></label>
+              <label>Proof style <select id="filter-proof"></select></label>
+              <label>Offer <select id="filter-offer"></select></label>
+              <label>CTA <select id="filter-cta"></select></label>
+              <label>Personalization <select id="filter-personalization"></select></label>
+            </div>
+            <div class="workbench-results">
+              <p class="result-count" id="result-count"></p>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Candidate</th>
+                      <th>Composite</th>
+                      <th>Lift</th>
+                      <th>Trust</th>
+                    </tr>
+                  </thead>
+                  <tbody id="candidate-body"></tbody>
+                </table>
+              </div>
+            </div>
+            <aside class="strategy-detail" id="strategy-detail"></aside>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

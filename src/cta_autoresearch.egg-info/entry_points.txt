@@ -1,0 +1,2 @@
+[console_scripts]
+cta-research = cta_autoresearch.cli:main
