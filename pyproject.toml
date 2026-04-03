@@ -14,6 +14,9 @@ dependencies = ["openai>=2.30.0"]
 cta-research = "cta_autoresearch.cli:main"
 cta-lab = "cta_autoresearch.lab_cli:main"
 cta-research-lab = "cta_autoresearch.lab_cli:main"
+cta-harness = "cta_autoresearch.harness:main"
+cta-optimize = "cta_autoresearch.policy_optimizer:main"
+cta-user-model = "cta_autoresearch.user_model:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
