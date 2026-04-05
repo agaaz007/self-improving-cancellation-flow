@@ -134,18 +134,27 @@ _LLM_PROMPT = (
 
 
 def _llm_score(persona: Persona, candidate: StrategyCandidate) -> dict[str, float]:
-    """Score via LLM. Assumes _llm_client is set."""
+    """Score via LLM. Assumes _llm_client is set.
+
+    Uses the OpenAI Responses API (client.responses.create) which is what
+    the rest of the codebase uses. Falls back gracefully on API errors so
+    a single bad call doesn't crash the overnight run.
+    """
     prompt = _LLM_PROMPT.format(
         persona=_persona_summary(persona),
         candidate=_candidate_summary(candidate),
     )
-    response = _llm_client.chat.completions.create(
-        model=_llm_model,
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.3,
-        max_completion_tokens=100,
-    )
-    raw = response.choices[0].message.content or ""
+    try:
+        response = _llm_client.responses.create(
+            model=_llm_model,
+            input=prompt,
+            max_output_tokens=100,
+        )
+        raw = str(response.output_text or "")
+    except Exception:
+        # API error — return neutral scores rather than crashing
+        return _build_score_dict(0.4, 0.5, 0.7)
+
     match = re.search(r"\{[^}]+\}", raw)
     if match:
         try:

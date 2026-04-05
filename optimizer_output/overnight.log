@@ -1,0 +1,101 @@
+=== Overnight autoresearch started at Mon  6 Apr 2026 01:51:30 IST ===
+
+=== Phase 1: Exploration (200 iters, intensity=3.0) ===
+Warm-start: 457 rows applied.
+[scorer] Pre-warmed cache with 27 new scores (27 total cached)
+---
+mode: agent
+starting_save_rate: 0.649
+ending_save_rate: 0.8097
+best_save_rate: 0.8048
+total_save_lift: 0.1607
+starting_reward: 0.6653
+ending_reward: 0.8038
+alignment_score: 0.5574
+trust_score: 0.8038
+eval_mode: simulator
+iterations: 200
+kept: 7
+discarded: 193
+  arm_priors: 7/50 kept
+  context_arms: 0/89 kept
+  discount_cap: 0/9 kept
+  exploration_rate: 0/26 kept
+  reason_routing: 0/26 kept
+holdout_save_rate: 0.8182 (n=91)
+overfit_gap: -0.0085
+results: optimizer_output/results.tsv
+summary: optimizer_output/summary.json
+
+=== Phase 2: Fine-tuning (200 iters, intensity=1.5) ===
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/Agaaz/conductor/workspaces/auto-research-cta/manila/src/cta_autoresearch/policy_optimizer.py", line 1806, in <module>
+    main()
+  File "/Users/Agaaz/conductor/workspaces/auto-research-cta/manila/src/cta_autoresearch/policy_optimizer.py", line 1789, in main
+    results = optimizer.optimize(
+              ^^^^^^^^^^^^^^^^^^^
+  File "/Users/Agaaz/conductor/workspaces/auto-research-cta/manila/src/cta_autoresearch/policy_optimizer.py", line 1564, in optimize
+    result = self.run_one(run_id=i + 1)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/Agaaz/conductor/workspaces/auto-research-cta/manila/src/cta_autoresearch/policy_optimizer.py", line 1479, in run_one
+    gen_logs = self._generation_round()
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/Agaaz/conductor/workspaces/auto-research-cta/manila/src/cta_autoresearch/policy_optimizer.py", line 1202, in _generation_round
+    result = self._evaluate_strategy(action_id, strat["dims"])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/Agaaz/conductor/workspaces/auto-research-cta/manila/src/cta_autoresearch/policy_optimizer.py", line 1101, in _evaluate_strategy
+    details = score_candidate_details(persona, candidate)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/Agaaz/conductor/workspaces/auto-research-cta/manila/src/cta_autoresearch/simulator.py", line 306, in score_candidate_details
+    result = _llm_score(persona, candidate)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/Agaaz/conductor/workspaces/auto-research-cta/manila/src/cta_autoresearch/simulator.py", line 142, in _llm_score
+    response = _llm_client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/Agaaz/anaconda3/lib/python3.11/site-packages/openai/_utils/_utils.py", line 287, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/Agaaz/anaconda3/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 925, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/Users/Agaaz/anaconda3/lib/python3.11/site-packages/openai/_base_client.py", line 1239, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/Agaaz/anaconda3/lib/python3.11/site-packages/openai/_base_client.py", line 1034, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': {'message': "We could not parse the JSON body of your request. (HINT: This likely means you aren't using your HTTP library correctly. The OpenAI API expects a JSON payload, but what was sent was not valid JSON. If you have trouble figuring out how to fix this, please contact us through our help center at help.openai.com.)", 'type': 'invalid_request_error', 'param': None, 'code': None}}
+Loaded state from optimizer_output/policy_state_phase1.json (phase compounding).
+[scorer] Loaded 27 cached scores from optimizer_output/llm_score_cache.json
+
+=== Phase 3: Polish (100 iters, intensity=1.0) ===
+Loaded state from optimizer_output/policy_state_phase2.json (phase compounding).
+[scorer] Loaded 27 cached scores from optimizer_output/llm_score_cache.json
+---
+mode: agent
+starting_save_rate: 0.7906
+ending_save_rate: 0.8019
+best_save_rate: 0.7906
+total_save_lift: 0.0113
+starting_reward: 0.7944
+ending_reward: 0.8011
+alignment_score: 0.5792
+trust_score: 0.7495
+eval_mode: simulator
+iterations: 100
+kept: 0
+discarded: 100
+  arm_priors: 0/28 kept
+  context_arms: 0/43 kept
+  discount_cap: 0/1 kept
+  exploration_rate: 0/11 kept
+  reason_routing: 0/17 kept
+holdout_save_rate: 0.8066 (n=91)
+overfit_gap: -0.0047
+results: optimizer_output/results.tsv
+summary: optimizer_output/summary.json
+
+=== Overnight autoresearch completed at Mon  6 Apr 2026 03:04:01 IST ===
+Final policy: optimizer_output/policy_state_final.json
+Full log: optimizer_output/overnight.log
