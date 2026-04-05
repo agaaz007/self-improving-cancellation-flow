@@ -868,20 +868,18 @@ def simulator_eval(
     personas: list[Persona] | None = None,
     candidate_resolver: Callable[..., StrategyCandidate] | None = None,
 ) -> SimulatorEvalResult:
-    """Evaluate a policy using the simulator as the fixed Karpathy harness.
+    """Evaluate a policy using the LLM judge as the fixed Karpathy harness.
 
     For each user row:
       1. Convert to Persona (or use cached)
       2. simulate_action(row) → action_id (str) or (action_id, strategy_id) tuple
       3. candidate_resolver(action_id[, strategy_id]) → StrategyCandidate
-      4. score_candidate_details(persona, candidate) → scores
+      4. score_candidate_details(persona, candidate) → scores (LLM or fallback)
       5. Check alignment: is action in archetype's recommended list?
-
-    The composite score IS the optimization metric. Different posteriors →
-    different Thompson draws → different actions → different scores.
-    Different presentation dimensions → different component fit scores.
     """
     from cta_autoresearch.simulator import score_candidate_details
+
+    scorer = score_candidate_details
 
     if personas is None:
         personas = [enriched_row_to_persona(r, i) for i, r in enumerate(rows)]
@@ -914,8 +912,8 @@ def simulator_eval(
             # Backward compat: resolver only accepts action_id
             candidate = resolve(action_id)
 
-        # Score with the fixed harness
-        scores = score_candidate_details(persona, candidate)
+        # Score with the harness (heuristic or calibrated)
+        scores = scorer(persona, candidate)
 
         retention_scores.append(scores["retention"])
         revenue_scores.append(scores["revenue"])

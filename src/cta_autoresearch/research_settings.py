@@ -5,11 +5,7 @@ from dataclasses import asdict, dataclass
 
 
 HEURISTIC_MODEL = "heuristic-simulator"
-EXECUTION_MODES = {
-    "heuristic": {"label": "Heuristic only"},
-    "hybrid": {"label": "OpenAI ideation + heuristic validation"},
-    "api_only": {"label": "OpenAI ideation + OpenAI evaluation"},
-}
+DEFAULT_OPENAI_MODEL = "gpt-5.4-mini"
 REASONING_EFFORT_OPTIONS = {
     "low": {"label": "Low"},
     "medium": {"label": "Medium"},
@@ -59,8 +55,7 @@ class ResearchSettings:
     persona_richness: str = "rich"
     ideation_agents: int = 5
     validation_budget: int = DEPTH_OPTIONS["standard"]["validation_budget"]
-    execution_mode: str = "heuristic"
-    model_name: str = HEURISTIC_MODEL
+    model_name: str = DEFAULT_OPENAI_MODEL
     seed: int = 7
     discount_step: int = DEPTH_OPTIONS["standard"]["discount_step"]
     discount_floor: int = 0
@@ -81,12 +76,13 @@ class ResearchSettings:
         return self.model_name != HEURISTIC_MODEL
 
     @property
-    def openai_for_research(self) -> bool:
-        return self.uses_openai and self.execution_mode in {"hybrid", "api_only"}
+    def has_api_key(self) -> bool:
+        return bool(os.getenv("OPENAI_API_KEY"))
 
     @property
-    def api_only(self) -> bool:
-        return self.uses_openai and self.execution_mode == "api_only"
+    def openai_for_research(self) -> bool:
+        """Whether OpenAI is configured and available for ideation."""
+        return self.uses_openai and self.has_api_key
 
     @property
     def effective_validation_budget(self) -> int:
@@ -99,14 +95,6 @@ class ResearchSettings:
     @property
     def generated_idea_limit(self) -> int:
         return max(self.ideation_agents * self.idea_proposals_per_agent, self.ideation_agents)
-
-    @property
-    def has_api_key(self) -> bool:
-        return bool(os.getenv("OPENAI_API_KEY"))
-
-    @property
-    def openai_ready(self) -> bool:
-        return self.openai_for_research and self.has_api_key
 
     @property
     def model(self) -> str:
@@ -139,9 +127,8 @@ class ResearchSettings:
         payload["generated_idea_limit"] = self.generated_idea_limit
         payload["persona_shortlist_size"] = max(self.top_n * self.persona_shortlist_multiplier, 12)
         payload["discount_levels"] = self.discount_levels()
-        payload["openai_ready"] = self.openai_ready
+        payload["openai_for_research"] = self.openai_for_research
         payload["roles"] = self.available_roles()
-        payload["api_only"] = self.api_only
         return payload
 
     def as_dict(self) -> dict[str, object]:
@@ -156,9 +143,6 @@ def build_settings(overrides: dict[str, object] | None = None) -> ResearchSettin
     persona_richness = str(overrides.get("persona_richness") or "rich")
     if persona_richness not in PERSONA_RICHNESS_OPTIONS:
         persona_richness = "rich"
-    execution_mode = str(overrides.get("execution_mode") or "heuristic")
-    if execution_mode not in EXECUTION_MODES:
-        execution_mode = "heuristic"
     reasoning_effort = str(overrides.get("openai_reasoning_effort") or "medium")
     if reasoning_effort not in REASONING_EFFORT_OPTIONS:
         reasoning_effort = "medium"
@@ -179,8 +163,7 @@ def build_settings(overrides: dict[str, object] | None = None) -> ResearchSettin
         persona_richness=persona_richness,
         ideation_agents=_safe_int(overrides.get("ideation_agents"), 5, minimum=1, maximum=len(AGENT_ROLES)),
         validation_budget=validation_budget,
-        execution_mode=execution_mode,
-        model_name=str(overrides["model_name"] if "model_name" in overrides else HEURISTIC_MODEL),
+        model_name=str(overrides["model_name"] if "model_name" in overrides else DEFAULT_OPENAI_MODEL),
         seed=_safe_int(overrides.get("seed"), 7, minimum=0),
         discount_step=_safe_int(overrides.get("discount_step"), depth_defaults["discount_step"], minimum=1),
         discount_floor=discount_floor,
@@ -201,10 +184,6 @@ def build_settings(overrides: dict[str, object] | None = None) -> ResearchSettin
 def build_settings_catalog() -> dict[str, object]:
     return {
         "defaults": build_settings().to_dict(),
-        "execution_modes": {
-            key: {"label": value["label"]}
-            for key, value in EXECUTION_MODES.items()
-        },
         "depth_options": {
             key: {"label": key.title(), **value}
             for key, value in DEPTH_OPTIONS.items()
@@ -214,7 +193,6 @@ def build_settings_catalog() -> dict[str, object]:
             for key, value in PERSONA_RICHNESS_OPTIONS.items()
         },
         "model_options": {
-            HEURISTIC_MODEL: {"label": "Heuristic simulator", "model_name": HEURISTIC_MODEL},
             "gpt-5.4-mini": {"label": "GPT-5.4 Mini", "model_name": "gpt-5.4-mini"},
             "gpt-5.4": {"label": "GPT-5.4", "model_name": "gpt-5.4"},
         },

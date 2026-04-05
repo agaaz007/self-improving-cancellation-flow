@@ -94,6 +94,9 @@ class StrategyScore:
     revenue_score: float
     trust_safety_score: float
     component_scores: dict[str, float]
+    research_trace: dict[str, object] | None = None
+    flow_spec: dict[str, object] | None = None
+    experiment_spec: dict[str, object] | None = None
 
 
 @dataclass(frozen=True)
@@ -107,3 +110,6 @@ class IdeaProposal:
     confidence: float
     candidate: StrategyCandidate
     sample_message: str
+    research_trace: dict[str, object] | None = None
+    flow_spec: dict[str, object] | None = None
+    experiment_spec: dict[str, object] | None = None

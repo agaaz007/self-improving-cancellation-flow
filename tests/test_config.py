@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 from cta_autoresearch.lab_dashboard import build_dashboard_dataset, write_dashboard_data
-from cta_autoresearch.research_settings import HEURISTIC_MODEL, build_settings, build_settings_catalog
+from cta_autoresearch.research_settings import DEFAULT_OPENAI_MODEL, build_settings, build_settings_catalog
 
 
 class ResearchSettingsTest(unittest.TestCase):
@@ -29,7 +29,8 @@ class ResearchSettingsTest(unittest.TestCase):
     def test_settings_catalog_exposes_defaults(self) -> None:
         catalog = build_settings_catalog()
         self.assertIn("defaults", catalog)
-        self.assertEqual(catalog["defaults"]["model_name"], HEURISTIC_MODEL)
+        self.assertEqual(catalog["defaults"]["model_name"], DEFAULT_OPENAI_MODEL)
+        self.assertIn("depth_options", catalog)
 
     def test_settings_tolerate_common_hosted_input_shapes(self) -> None:
         settings = build_settings(
@@ -78,19 +79,16 @@ class ResearchSettingsTest(unittest.TestCase):
         )
         self.assertEqual(payload["meta"]["research_settings"]["strategy_depth"], "extreme")
 
-    def test_settings_allow_none_validation_budget_and_api_only_mode(self) -> None:
+    def test_settings_allow_none_validation_budget(self) -> None:
         settings = build_settings(
             {
                 "population": 60,
                 "strategy_depth": "standard",
                 "validation_budget": None,
-                "execution_mode": "api_only",
                 "model_name": "gpt-5.4-mini",
             }
         )
 
-        self.assertEqual(settings.execution_mode, "api_only")
-        self.assertTrue(settings.api_only)
         self.assertGreater(settings.effective_validation_budget, 0)
 
 

@@ -15,7 +15,7 @@ from urllib.parse import parse_qs, urlparse
 from cta_autoresearch.lab_dashboard import build_dashboard_dataset, write_dashboard_data
 from cta_autoresearch.lab_optimizer import build_report
 from cta_autoresearch.personas import generate_personas
-from cta_autoresearch.research_settings import HEURISTIC_MODEL, build_settings, build_settings_catalog
+from cta_autoresearch.research_settings import DEFAULT_OPENAI_MODEL, build_settings, build_settings_catalog
 from cta_autoresearch.sample_data import load_seed_profiles
 
 
@@ -28,8 +28,7 @@ def _settings_from_args(args: argparse.Namespace) -> dict[str, object]:
         "persona_richness": getattr(args, "persona_richness", "standard"),
         "ideation_agents": getattr(args, "ideation_agents", 4),
         "validation_budget": getattr(args, "validation_budget", None),
-        "execution_mode": getattr(args, "execution_mode", "heuristic"),
-        "model_name": getattr(args, "model_name", HEURISTIC_MODEL),
+        "model_name": getattr(args, "model_name", DEFAULT_OPENAI_MODEL),
         "discount_step": getattr(args, "discount_step", 10),
         "discount_floor": getattr(args, "discount_floor", 0),
         "discount_ceiling": getattr(args, "discount_ceiling", 100),
@@ -97,8 +96,7 @@ def _format_run_command(settings: dict[str, object]) -> str:
         f"--persona-richness {settings.get('persona_richness', 'rich')}",
         f"--ideation-agents {settings.get('ideation_agents', 5)}",
         f"--validation-budget {settings.get('validation_budget', 240)}",
-        f"--execution-mode {settings.get('execution_mode', 'heuristic')}",
-        f"--model-name {settings.get('model_name', HEURISTIC_MODEL)}",
+        f"--model-name {settings.get('model_name', DEFAULT_OPENAI_MODEL)}",
         f"--top-n {settings.get('top_n', 25)}",
         f"--seed {settings.get('seed', 7)}",
     ]
@@ -308,8 +306,7 @@ def add_shared_research_args(parser: argparse.ArgumentParser, *, dashboard_defau
     parser.add_argument("--persona-richness", type=str, default="standard")
     parser.add_argument("--ideation-agents", type=int, default=4)
     parser.add_argument("--validation-budget", type=int, default=None)
-    parser.add_argument("--execution-mode", type=str, default="heuristic")
-    parser.add_argument("--model-name", type=str, default=HEURISTIC_MODEL)
+    parser.add_argument("--model-name", type=str, default=DEFAULT_OPENAI_MODEL)
     parser.add_argument("--discount-step", type=int, default=10)
     parser.add_argument("--discount-floor", type=int, default=0)
     parser.add_argument("--discount-ceiling", type=int, default=100)

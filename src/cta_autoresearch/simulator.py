@@ -1,278 +1,337 @@
+"""LLM-as-judge scorer for cancel flow strategies.
+
+The heuristic formula factory is gone. Scoring is now done by an LLM that
+evaluates whether a strategy matches a user's situation. Scores are cached
+aggressively so the overnight optimization loop stays fast.
+
+Architecture:
+    1. Call configure_scorer() once at startup with an OpenAI client
+    2. score_candidate_details(persona, candidate) dispatches to LLM + cache
+    3. When no client is configured (tests, CI), a minimal fallback runs
+
+Cache key: (segment, offer, message_angle, cta) — the dimensions that most
+affect whether a strategy saves a user. This groups many persona×candidate
+pairs into the same bucket, keeping LLM calls manageable.
+"""
 from __future__ import annotations
 
+import json
+import re
+from pathlib import Path
+from typing import Any
+
 from cta_autoresearch.features import clamp
-from cta_autoresearch.models import FeatureVector, Persona, StrategyCandidate
-from cta_autoresearch.strategy_policy import (
-    CONTEXTUAL_GROUNDINGS,
-    CREATIVE_TREATMENTS,
-    FRICTION_REDUCERS,
-    OFFERS,
-    PERSONALIZATION_LEVELS,
+from cta_autoresearch.models import Persona, StrategyCandidate
+from cta_autoresearch.strategy_policy import OFFERS
+
+
+# ── Module-level scorer state ────────────────────────────────────────
+
+_llm_client: Any = None
+_llm_model: str = "gpt-4o-mini"
+_score_cache: dict[str, dict[str, float]] = {}
+_cache_path: Path | None = None
+
+
+def configure_scorer(
+    *,
+    client: Any = None,
+    model: str = "gpt-4o-mini",
+    cache_path: str | Path | None = None,
+) -> None:
+    """Configure the LLM scorer. Call once at startup.
+
+    Args:
+        client: OpenAI client instance (chat.completions compatible)
+        model: Model name for scoring calls
+        cache_path: Path to persist score cache across runs
+    """
+    global _llm_client, _llm_model, _score_cache, _cache_path
+    _llm_client = client
+    _llm_model = model
+    _score_cache = {}  # Always reset cache on reconfigure
+    _cache_path = Path(cache_path) if cache_path else None
+    if _cache_path and _cache_path.exists():
+        try:
+            loaded = json.loads(_cache_path.read_text())
+            if isinstance(loaded, dict):
+                _score_cache = loaded
+                print(f"[scorer] Loaded {len(_score_cache)} cached scores from {_cache_path}")
+        except (json.JSONDecodeError, OSError):
+            pass
+
+
+def persist_cache() -> None:
+    """Write score cache to disk. Call after optimization loop."""
+    if _cache_path and _score_cache:
+        _cache_path.parent.mkdir(parents=True, exist_ok=True)
+        _cache_path.write_text(json.dumps(_score_cache, indent=2))
+
+
+def reset_scorer() -> None:
+    """Reset scorer to fallback mode and clear cache. Use in tests."""
+    global _llm_client, _score_cache
+    _llm_client = None
+    _score_cache = {}
+
+
+def _cache_key(persona: Persona, candidate: StrategyCandidate) -> str:
+    """Cache key captures the dimensions that matter for scoring."""
+    return f"{persona.features.segment}|{candidate.offer}|{candidate.message_angle}|{candidate.cta}|{candidate.friction_reducer}"
+
+
+# ── LLM judge ────────────────────────────────────────────────────────
+
+
+def _persona_summary(persona: Persona) -> str:
+    f = persona.features
+    p = persona.profile
+    top_features = sorted(
+        [(k, getattr(f, k)) for k in (
+            "habit_strength", "price_sensitivity", "urgency", "support_need",
+            "feature_awareness_gap", "trust_sensitivity", "friction_sensitivity",
+            "deadline_pressure", "fatigue_risk", "discount_affinity",
+        )],
+        key=lambda x: x[1], reverse=True,
+    )[:5]
+    features_str = ", ".join(f"{k.replace('_', ' ')}={v:.2f}" for k, v in top_features)
+    return (
+        f"Segment: {f.segment}. Plan: {p.plan}, {p.billing_period}. "
+        f"Tenure: {p.lifetime_days}d. Status: {p.status}. "
+        f"Dormancy: {p.dormancy_days}d. Study: {p.study_context}. "
+        f"Top features: {features_str}."
+    )
+
+
+def _candidate_summary(candidate: StrategyCandidate) -> str:
+    return (
+        f"Action: {candidate.offer.replace('_', ' ')}. "
+        f"Angle: {candidate.message_angle.replace('_', ' ')}. "
+        f"Proof: {candidate.proof_style.replace('_', ' ')}. "
+        f"CTA: {candidate.cta.replace('_', ' ')}. "
+        f"Personalization: {candidate.personalization}. "
+        f"Grounding: {candidate.contextual_grounding.replace('_', ' ')}. "
+        f"Treatment: {candidate.creative_treatment.replace('_', ' ')}. "
+        f"Friction reducer: {candidate.friction_reducer.replace('_', ' ')}."
+    )
+
+
+_LLM_PROMPT = (
+    "You are scoring a cancellation save strategy for a specific user of a learning app.\n\n"
+    "User: {persona}\n\n"
+    "Strategy: {candidate}\n\n"
+    "Score these three dimensions from 0.0 to 1.0:\n"
+    "- retention: probability this intervention saves the user from cancelling. "
+    "Consider fit between the user's reason for leaving and what the strategy offers.\n"
+    "- revenue: revenue preservation (1.0 = full price retained, 0.0 = total loss). "
+    "Discounts reduce this. Pause/downgrade partially reduce it. No-offer = 1.0.\n"
+    "- trust: trust preservation (1.0 = respectful, 0.0 = manipulative). "
+    "Aggressive urgency on non-urgent users damages trust. Over-personalization feels creepy.\n\n"
+    "Score based on fit, not just generosity. A discount for a graduating student wastes money. "
+    "A pause for a price-sensitive user misses the point.\n\n"
+    'Return JSON only: {{"retention": 0.X, "revenue": 0.X, "trust": 0.X}}'
 )
 
 
-def _angle_fit(features: FeatureVector, angle: str) -> float:
-    formulas = {
-        "progress_reflection": 0.46 * features.habit_strength + 0.18 * features.activation_score + 0.22 * features.loss_aversion + 0.14 * features.value_realization,
-        "outcome_proof": 0.40 * features.proof_need + 0.24 * features.price_sensitivity + 0.20 * features.feature_awareness_gap + 0.16 * features.deadline_pressure,
-        "mistake_recovery": 0.34 * features.support_need + 0.22 * features.urgency + 0.20 * features.activation_score + 0.24 * features.rescue_readiness,
-        "habit_identity": 0.46 * features.habit_strength + 0.18 * features.loss_aversion + 0.14 * features.activation_score + 0.22 * (1.0 - features.habit_fragility),
-        "empathetic_exit": 0.34 * features.trust_sensitivity + 0.24 * features.support_need + 0.22 * features.friction_sensitivity + 0.20 * features.fatigue_risk,
-        "feature_unlock": 0.44 * features.feature_awareness_gap + 0.20 * features.proof_need + 0.16 * features.activation_score + 0.20 * (1.0 - features.value_realization),
-        "momentum_protection": 0.36 * features.habit_strength + 0.24 * features.urgency + 0.18 * features.loss_aversion + 0.22 * features.habit_fragility,
-        "cost_value_reframe": 0.34 * features.price_sensitivity + 0.22 * features.proof_need + 0.20 * features.feature_awareness_gap + 0.24 * (1.0 - features.value_realization),
-        "goal_deadline": 0.42 * features.deadline_pressure + 0.22 * features.loss_aversion + 0.18 * features.habit_strength + 0.18 * features.urgency,
-        "flexibility_relief": 0.36 * features.friction_sensitivity + 0.28 * features.trust_sensitivity + 0.20 * features.price_sensitivity + 0.16 * features.fatigue_risk,
-        "fresh_start_reset": 0.28 * features.support_need + 0.24 * features.feature_awareness_gap + 0.22 * (1.0 - features.activation_score) + 0.26 * features.fatigue_risk,
+def _llm_score(persona: Persona, candidate: StrategyCandidate) -> dict[str, float]:
+    """Score via LLM. Assumes _llm_client is set."""
+    prompt = _LLM_PROMPT.format(
+        persona=_persona_summary(persona),
+        candidate=_candidate_summary(candidate),
+    )
+    response = _llm_client.chat.completions.create(
+        model=_llm_model,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.3,
+        max_completion_tokens=100,
+    )
+    raw = response.choices[0].message.content or ""
+    match = re.search(r"\{[^}]+\}", raw)
+    if match:
+        try:
+            parsed = json.loads(match.group(0))
+            retention = clamp(float(parsed.get("retention", 0.4)))
+            revenue = clamp(float(parsed.get("revenue", 0.5)))
+            trust = clamp(float(parsed.get("trust", 0.7)))
+        except (json.JSONDecodeError, TypeError, ValueError):
+            retention, revenue, trust = 0.4, 0.5, 0.7
+    else:
+        retention, revenue, trust = 0.4, 0.5, 0.7
+
+    return _build_score_dict(retention, revenue, trust)
+
+
+# ── Fallback scorer (no API key) ─────────────────────────────────────
+
+
+def _fallback_score(persona: Persona, candidate: StrategyCandidate) -> dict[str, float]:
+    """Minimal fallback when no LLM client is configured (tests, CI).
+
+    Not a replacement for the LLM judge — just enough to keep the pipeline
+    runnable and produce sane relative rankings. Active interventions beat
+    control, and feature-relevant offers beat generic ones.
+    """
+    f = persona.features
+    offer_meta = OFFERS.get(candidate.offer, {"kind": "none", "generosity": 0.0})
+    kind = offer_meta.get("kind", "none")
+
+    # Base retention by offer kind
+    if kind == "none":
+        retention = 0.20
+    elif kind == "discount":
+        retention = 0.40 + 0.15 * f.price_sensitivity
+    elif kind in ("pause", "downgrade"):
+        retention = 0.38 + 0.12 * f.friction_sensitivity
+    elif kind == "support":
+        retention = 0.35 + 0.15 * f.support_need
+    elif kind == "credit":
+        retention = 0.35 + 0.15 * f.feature_awareness_gap
+    elif kind == "extension":
+        retention = 0.35 + 0.15 * f.deadline_pressure
+    elif kind == "billing":
+        retention = 0.33 + 0.12 * f.price_sensitivity
+    else:
+        retention = 0.30
+
+    # Angle fit bonus
+    angle_boosts = {
+        "cost_value_reframe": f.price_sensitivity * 0.08,
+        "flexibility_relief": f.friction_sensitivity * 0.08,
+        "feature_unlock": f.feature_awareness_gap * 0.08,
+        "goal_deadline": f.deadline_pressure * 0.08,
+        "mistake_recovery": f.support_need * 0.08,
+        "progress_reflection": f.habit_strength * 0.06,
+        "momentum_protection": f.habit_strength * 0.06,
+        "fresh_start_reset": f.fatigue_risk * 0.06,
+        "outcome_proof": f.proof_need * 0.06,
+        "habit_identity": f.habit_strength * 0.05,
+        "empathetic_exit": f.trust_sensitivity * 0.04,
     }
-    return clamp(formulas[angle])
+    retention += angle_boosts.get(candidate.message_angle, 0.0)
 
-
-def _proof_fit(features: FeatureVector, proof_style: str) -> float:
-    formulas = {
-        "none": 0.30 * features.trust_sensitivity + 0.40 * features.habit_strength + 0.30 * features.value_realization,
-        "quantified_outcome": 0.40 * features.proof_need + 0.20 * features.price_sensitivity + 0.20 * features.urgency + 0.20 * features.deadline_pressure,
-        "peer_testimonial": 0.32 * features.proof_need + 0.26 * features.trust_sensitivity + 0.20 * features.feature_awareness_gap + 0.22 * features.fatigue_risk,
-        "similar_user_story": 0.28 * features.proof_need + 0.24 * features.feature_awareness_gap + 0.20 * features.urgency + 0.28 * features.rescue_readiness,
-        "expert_validation": 0.28 * features.proof_need + 0.24 * features.support_need + 0.28 * features.trust_sensitivity + 0.20 * features.deadline_pressure,
-        "personal_usage_signal": 0.30 * features.habit_strength + 0.18 * features.activation_score + 0.20 * features.loss_aversion + 0.32 * features.value_realization,
+    # Proof style bonus
+    proof_boosts = {
+        "quantified_outcome": f.proof_need * 0.04,
+        "personal_usage_signal": f.habit_strength * 0.04,
+        "similar_user_story": f.rescue_readiness * 0.03,
+        "expert_validation": f.trust_sensitivity * 0.03,
     }
-    return clamp(formulas[proof_style])
+    retention += proof_boosts.get(candidate.proof_style, 0.0)
 
-
-def _offer_fit(features: FeatureVector, offer: str) -> float:
-    offer_meta = OFFERS[offer]
-    if offer_meta["kind"] == "discount":
-        generosity = offer_meta["generosity"]
-        discount_weight = 0.32 + 0.30 * generosity
-        urgency_weight = max(0.08, 0.22 - 0.10 * generosity)
-        return clamp(
-            discount_weight * features.discount_affinity
-            + 0.26 * features.price_sensitivity
-            + urgency_weight * features.urgency
-            + 0.20 * features.fatigue_risk
-        )
-
-    formulas = {
-        "none": 0.30 * features.habit_strength + 0.24 * features.trust_sensitivity + 0.20 * features.urgency + 0.26 * features.value_realization,
-        "pause_plan": 0.30 * features.friction_sensitivity + 0.20 * features.trust_sensitivity + 0.16 * features.habit_strength + 0.34 * features.habit_fragility,
-        "downgrade_lite": 0.28 * features.price_sensitivity + 0.20 * features.habit_strength + 0.22 * features.friction_sensitivity + 0.30 * features.rescue_readiness,
-        "exam_sprint": 0.38 * features.deadline_pressure + 0.18 * features.activation_score + 0.18 * features.loss_aversion + 0.26 * features.urgency,
-        "bonus_credits": 0.34 * features.feature_awareness_gap + 0.16 * features.proof_need + 0.14 * features.activation_score + 0.36 * features.rescue_readiness,
-        "flexible_billing": 0.28 * features.price_sensitivity + 0.24 * features.friction_sensitivity + 0.16 * features.trust_sensitivity + 0.32 * features.fatigue_risk,
-        "concierge_support": 0.34 * features.support_need + 0.16 * features.trust_sensitivity + 0.16 * features.feature_awareness_gap + 0.34 * features.rescue_readiness,
-        "study_plan_reset": 0.28 * features.support_need + 0.18 * features.feature_awareness_gap + 0.18 * features.fatigue_risk + 0.36 * features.rescue_readiness,
-        "priority_review_pack": 0.30 * features.deadline_pressure + 0.18 * features.urgency + 0.14 * features.proof_need + 0.38 * features.rescue_readiness,
-        "deadline_extension_plus": 0.36 * features.deadline_pressure + 0.22 * features.urgency + 0.14 * features.loss_aversion + 0.28 * features.rescue_readiness,
-        "office_hours_access": 0.32 * features.support_need + 0.18 * features.trust_sensitivity + 0.16 * features.proof_need + 0.34 * features.rescue_readiness,
+    # Grounding bonus
+    grounding_boosts = {
+        "deadline_countdown": f.deadline_pressure * 0.04,
+        "deadline_pressure": f.deadline_pressure * 0.04,
+        "unused_value": f.feature_awareness_gap * 0.04,
+        "pricing_context": f.price_sensitivity * 0.04,
+        "progress_snapshot": f.habit_strength * 0.03,
+        "habit_streak": f.habit_strength * 0.03,
+        "support_signal": f.support_need * 0.03,
     }
-    return clamp(formulas[offer])
+    retention += grounding_boosts.get(candidate.contextual_grounding, 0.0)
 
-
-def _cta_fit(features: FeatureVector, cta: str) -> float:
-    formulas = {
-        "stay_on_current_plan": 0.34 * features.habit_strength + 0.18 * features.loss_aversion + 0.14 * features.activation_score + 0.34 * features.value_realization,
-        "claim_offer": 0.30 * features.discount_affinity + 0.18 * features.price_sensitivity + 0.14 * features.proof_need + 0.38 * features.rescue_readiness,
-        "pause_instead": 0.28 * features.friction_sensitivity + 0.18 * features.trust_sensitivity + 0.14 * features.habit_strength + 0.40 * features.habit_fragility,
-        "switch_to_lite": 0.30 * features.price_sensitivity + 0.20 * features.friction_sensitivity + 0.12 * features.habit_strength + 0.38 * features.rescue_readiness,
-        "finish_current_goal": 0.34 * features.deadline_pressure + 0.18 * features.loss_aversion + 0.10 * features.activation_score + 0.38 * features.urgency,
-        "talk_to_learning_support": 0.28 * features.support_need + 0.18 * features.trust_sensitivity + 0.12 * features.proof_need + 0.42 * features.rescue_readiness,
-        "tell_us_why": 0.22 * features.support_need + 0.18 * features.trust_sensitivity + 0.18 * features.feature_awareness_gap + 0.42 * features.fatigue_risk,
-        "see_plan_options": 0.18 * features.friction_sensitivity + 0.18 * features.price_sensitivity + 0.16 * features.trust_sensitivity + 0.48 * features.rescue_readiness,
-        "remind_me_later": 0.24 * features.friction_sensitivity + 0.18 * features.trust_sensitivity + 0.16 * (1.0 - features.urgency) + 0.42 * features.fatigue_risk,
+    # Treatment bonus
+    treatment_boosts = {
+        "progress_thermometer": f.habit_strength * 0.03,
+        "feature_collage": f.feature_awareness_gap * 0.03,
+        "study_timeline": f.deadline_pressure * 0.03,
+        "coach_note": f.support_need * 0.03,
+        "options_table": f.friction_sensitivity * 0.02,
     }
-    return clamp(formulas[cta])
+    retention += treatment_boosts.get(candidate.creative_treatment, 0.0)
 
-
-def _personalization_fit(features: FeatureVector, personalization: str) -> float:
-    intensity = PERSONALIZATION_LEVELS[personalization]["intensity"]
-    sweet_spot = 0.16 + 0.26 * features.habit_strength + 0.20 * features.urgency + 0.18 * features.value_realization - 0.28 * features.trust_sensitivity
-    return clamp(1.0 - abs(intensity - clamp(sweet_spot)))
-
-
-def _grounding_fit(features: FeatureVector, grounding: str) -> float:
-    formulas = {
-        "generic": 0.42 * features.trust_sensitivity + 0.28 * features.fatigue_risk + 0.30 * features.value_realization,
-        "study_goal": 0.38 * features.urgency + 0.36 * features.deadline_pressure + 0.26 * features.value_realization,
-        "recent_progress": 0.36 * features.habit_strength + 0.28 * features.activation_score + 0.36 * features.value_realization,
-        "deadline_pressure": 0.52 * features.deadline_pressure + 0.24 * features.urgency + 0.24 * features.loss_aversion,
-        "unused_value": 0.40 * features.feature_awareness_gap + 0.30 * (1.0 - features.value_realization) + 0.30 * features.proof_need,
-        "comeback_window": 0.30 * features.habit_fragility + 0.22 * features.fatigue_risk + 0.20 * features.support_need + 0.28 * features.rescue_readiness,
-        "pricing_context": 0.36 * features.price_sensitivity + 0.26 * features.discount_affinity + 0.18 * features.friction_sensitivity + 0.20 * features.fatigue_risk,
-        "support_signal": 0.38 * features.support_need + 0.18 * features.trust_sensitivity + 0.16 * features.feature_awareness_gap + 0.28 * features.rescue_readiness,
-        "progress_snapshot": 0.36 * features.habit_strength + 0.28 * features.activation_score + 0.36 * features.value_realization,
-        "deadline_countdown": 0.52 * features.deadline_pressure + 0.24 * features.urgency + 0.24 * features.loss_aversion,
-        "recovery_moment": 0.30 * features.habit_fragility + 0.22 * features.fatigue_risk + 0.20 * features.support_need + 0.28 * features.rescue_readiness,
-        "habit_streak": 0.36 * features.habit_strength + 0.28 * features.activation_score + 0.36 * features.value_realization,
+    # Friction reducer bonus
+    friction_boosts = {
+        "single_tap_pause": f.friction_sensitivity * 0.04,
+        "billing_date_shift": f.price_sensitivity * 0.04,
+        "prefilled_downgrade": f.price_sensitivity * 0.03,
+        "concierge_setup": f.support_need * 0.03,
+        "smart_resume_date": f.fatigue_risk * 0.03,
     }
-    return clamp(formulas[grounding])
+    retention += friction_boosts.get(candidate.friction_reducer, 0.0)
+
+    # Dormancy penalty for no-action
+    if kind == "none" and persona.profile.dormancy_days > 30:
+        retention -= 0.05
+
+    # Revenue: discounts cost money
+    generosity = float(offer_meta.get("generosity", 0.0))
+    revenue = clamp(1.0 - generosity)
+
+    # Trust: high personalization + high trust sensitivity = bad
+    trust = 0.85
+    if candidate.personalization in ("behavioral", "highly_specific") and f.trust_sensitivity > 0.65:
+        trust -= 0.10
+
+    return _build_score_dict(clamp(retention), revenue, trust)
 
 
-def _treatment_fit(features: FeatureVector, treatment: str) -> float:
-    formulas = {
-        "plain_note": 0.42 * features.trust_sensitivity + 0.30 * features.fatigue_risk + 0.28 * features.value_realization,
-        "progress_snapshot": 0.30 * features.habit_strength + 0.20 * features.activation_score + 0.20 * features.loss_aversion + 0.30 * features.value_realization,
-        "feature_visual": 0.30 * features.feature_awareness_gap + 0.20 * features.proof_need + 0.14 * features.activation_score + 0.36 * features.rescue_readiness,
-        "study_timeline": 0.34 * features.deadline_pressure + 0.20 * features.urgency + 0.16 * features.loss_aversion + 0.30 * features.rescue_readiness,
-        "peer_story_card": 0.30 * features.proof_need + 0.22 * features.trust_sensitivity + 0.14 * features.feature_awareness_gap + 0.34 * features.rescue_readiness,
-        "options_table": 0.26 * features.friction_sensitivity + 0.22 * features.price_sensitivity + 0.16 * features.trust_sensitivity + 0.36 * features.rescue_readiness,
-        "coach_plan": 0.22 * features.support_need + 0.20 * features.urgency + 0.18 * features.activation_score + 0.40 * features.rescue_readiness,
-        "feature_collage": 0.30 * features.feature_awareness_gap + 0.20 * features.proof_need + 0.14 * features.activation_score + 0.36 * features.rescue_readiness,
-        "progress_thermometer": 0.30 * features.habit_strength + 0.20 * features.activation_score + 0.20 * features.loss_aversion + 0.30 * features.value_realization,
-        "comeback_plan": 0.22 * features.support_need + 0.20 * features.urgency + 0.18 * features.activation_score + 0.40 * features.rescue_readiness,
-        "social_proof_card": 0.30 * features.proof_need + 0.22 * features.trust_sensitivity + 0.14 * features.feature_awareness_gap + 0.34 * features.rescue_readiness,
-        "coach_note": 0.22 * features.support_need + 0.20 * features.urgency + 0.18 * features.activation_score + 0.40 * features.rescue_readiness,
-        "before_after_frame": 0.26 * features.friction_sensitivity + 0.22 * features.price_sensitivity + 0.16 * features.trust_sensitivity + 0.36 * features.rescue_readiness,
+# ── Shared helpers ───────────────────────────────────────────────────
+
+
+def _build_score_dict(retention: float, revenue: float, trust: float) -> dict[str, float]:
+    """Build the standard score dict from the three core dimensions."""
+    composite = clamp(0.60 * retention + 0.40 * revenue)
+    return {
+        "score": composite,
+        "retention": retention,
+        "revenue": revenue,
+        "trust": trust,
+        "base_retention": retention,
+        "angle_fit": 0.5,
+        "proof_fit": 0.5,
+        "offer_fit": 0.5,
+        "cta_fit": 0.5,
+        "personalization_fit": 0.5,
+        "grounding_fit": 0.5,
+        "treatment_fit": 0.5,
+        "friction_fit": 0.5,
+        "trust_penalty": clamp(1.0 - trust),
     }
-    return clamp(formulas[treatment])
 
 
-def _friction_reducer_fit(features: FeatureVector, reducer: str) -> float:
-    formulas = {
-        "none": 0.38 * features.value_realization + 0.32 * features.habit_strength + 0.30 * (1.0 - features.friction_sensitivity),
-        "one_tap_pause": 0.26 * features.friction_sensitivity + 0.16 * features.trust_sensitivity + 0.20 * features.habit_fragility + 0.38 * features.rescue_readiness,
-        "one_tap_downgrade": 0.24 * features.price_sensitivity + 0.18 * features.friction_sensitivity + 0.18 * features.habit_strength + 0.40 * features.rescue_readiness,
-        "billing_shift": 0.32 * features.price_sensitivity + 0.20 * features.fatigue_risk + 0.10 * features.trust_sensitivity + 0.38 * features.rescue_readiness,
-        "keep_history": 0.20 * features.habit_strength + 0.18 * features.loss_aversion + 0.18 * features.trust_sensitivity + 0.44 * features.habit_fragility,
-        "guided_reset": 0.28 * features.support_need + 0.16 * features.feature_awareness_gap + 0.18 * features.fatigue_risk + 0.38 * features.rescue_readiness,
-        "human_concierge": 0.30 * features.support_need + 0.18 * features.trust_sensitivity + 0.16 * features.feature_awareness_gap + 0.36 * features.rescue_readiness,
-        "single_tap_pause": 0.26 * features.friction_sensitivity + 0.16 * features.trust_sensitivity + 0.20 * features.habit_fragility + 0.38 * features.rescue_readiness,
-        "prefilled_downgrade": 0.24 * features.price_sensitivity + 0.18 * features.friction_sensitivity + 0.18 * features.habit_strength + 0.40 * features.rescue_readiness,
-        "billing_date_shift": 0.32 * features.price_sensitivity + 0.20 * features.fatigue_risk + 0.10 * features.trust_sensitivity + 0.38 * features.rescue_readiness,
-        "concierge_setup": 0.30 * features.support_need + 0.18 * features.trust_sensitivity + 0.16 * features.feature_awareness_gap + 0.36 * features.rescue_readiness,
-        "smart_resume_date": 0.28 * features.support_need + 0.16 * features.feature_awareness_gap + 0.18 * features.fatigue_risk + 0.38 * features.rescue_readiness,
-        "plan_comparison": 0.20 * features.habit_strength + 0.18 * features.loss_aversion + 0.18 * features.trust_sensitivity + 0.44 * features.habit_fragility,
-    }
-    return clamp(formulas[reducer])
-
-
-def _trust_penalty(features: FeatureVector, candidate: StrategyCandidate) -> float:
-    intensity = PERSONALIZATION_LEVELS[candidate.personalization]["intensity"]
-    offer_meta = OFFERS[candidate.offer]
-
-    penalty = 0.0
-    if intensity > 0.70 and features.trust_sensitivity > 0.68:
-        penalty += 0.08
-    if candidate.message_angle == "goal_deadline" and offer_meta["generosity"] >= 0.40 and features.trust_sensitivity > 0.55:
-        penalty += 0.04
-    if candidate.proof_style == "personal_usage_signal" and intensity > 0.70 and features.trust_sensitivity > 0.55:
-        penalty += 0.05
-    if candidate.message_angle == "empathetic_exit" and candidate.offer.startswith("discount_"):
-        penalty += 0.02
-    if candidate.contextual_grounding in {"recent_progress", "support_signal"} and intensity > 0.70 and features.trust_sensitivity > 0.60:
-        penalty += 0.03
-    if candidate.creative_treatment in {"progress_snapshot", "feature_visual"} and features.trust_sensitivity > 0.72:
-        penalty += 0.02
-    if candidate.friction_reducer == "human_concierge" and features.trust_sensitivity > 0.70:
-        penalty += 0.03
-    return penalty
-
-
-def _economic_score(candidate: StrategyCandidate, features: FeatureVector) -> float:
-    generosity = OFFERS[candidate.offer]["generosity"]
-    base = 1.0 - generosity
-
-    if candidate.offer == "pause_plan":
-        base += 0.08
-    elif candidate.offer == "downgrade_lite":
-        base += 0.06
-    elif candidate.offer == "flexible_billing":
-        base += 0.05
-    elif candidate.offer == "concierge_support":
-        base -= 0.02
-    elif candidate.offer == "bonus_credits":
-        base += 0.03
-    elif candidate.offer == "study_plan_reset":
-        base += 0.02
-    elif candidate.offer == "priority_review_pack":
-        base += 0.01
-    elif candidate.offer == "deadline_extension_plus":
-        base -= 0.01
-    elif candidate.offer == "office_hours_access":
-        base -= 0.01
-
-    if candidate.friction_reducer in {"one_tap_pause", "one_tap_downgrade", "billing_shift"}:
-        base += 0.03
-    if candidate.creative_treatment in {"progress_snapshot", "feature_visual", "coach_plan"}:
-        base -= 0.01
-
-    if generosity >= 0.40 and features.habit_strength > 0.70:
-        base -= 0.10
-    if generosity >= 0.70:
-        base -= 0.08
-    if generosity == 1.0:
-        base -= 0.15
-
-    return clamp(base)
+# ── Public API ───────────────────────────────────────────────────────
 
 
 def score_candidate_details(persona: Persona, candidate: StrategyCandidate) -> dict[str, float]:
-    features = persona.features
-    base_retention = (
-        0.10
-        + 0.20 * features.habit_strength
-        + 0.10 * features.activation_score
-        + 0.08 * features.urgency
-        + 0.08 * features.value_realization
-        - 0.06 * features.feature_awareness_gap
-        - 0.04 * features.friction_sensitivity
-        - 0.05 * features.fatigue_risk
-    )
-    if persona.profile.plan.lower() == "free":
-        base_retention -= 0.04
-    if persona.profile.status != "active":
-        base_retention -= 0.03
-    if persona.profile.dormancy_days > 30:
-        base_retention -= 0.05
+    """Score a (persona, candidate) pair. Same signature as the old heuristic.
 
-    angle_fit = _angle_fit(features, candidate.message_angle)
-    proof_fit = _proof_fit(features, candidate.proof_style)
-    offer_fit = _offer_fit(features, candidate.offer)
-    cta_fit = _cta_fit(features, candidate.cta)
-    personalization_fit = _personalization_fit(features, candidate.personalization)
-    grounding_fit = _grounding_fit(features, candidate.contextual_grounding)
-    treatment_fit = _treatment_fit(features, candidate.creative_treatment)
-    friction_fit = _friction_reducer_fit(features, candidate.friction_reducer)
+    Dispatches to LLM judge (with cache) when configured, fallback otherwise.
+    Cache is only used for LLM calls — fallback is instant and stateless.
+    """
+    if _llm_client is not None:
+        key = _cache_key(persona, candidate)
+        if key in _score_cache:
+            return _score_cache[key]
+        result = _llm_score(persona, candidate)
+        _score_cache[key] = result
+        return result
 
-    trust_penalty = _trust_penalty(features, candidate)
-    trust_safety = clamp(1.0 - trust_penalty)
-    revenue_score = _economic_score(candidate, features)
-
-    retention_score = clamp(
-        base_retention
-        + 0.16 * angle_fit
-        + 0.10 * proof_fit
-        + 0.12 * offer_fit
-        + 0.10 * cta_fit
-        + 0.06 * personalization_fit
-        + 0.10 * grounding_fit
-        + 0.10 * treatment_fit
-        + 0.12 * friction_fit
-        - trust_penalty
-    )
-
-    composite_score = clamp(
-        0.58 * retention_score + 0.24 * revenue_score + 0.18 * trust_safety
-    )
-
-    return {
-        "score": composite_score,
-        "retention": retention_score,
-        "revenue": revenue_score,
-        "trust": trust_safety,
-        "base_retention": clamp(base_retention),
-        "angle_fit": angle_fit,
-        "proof_fit": proof_fit,
-        "offer_fit": offer_fit,
-        "cta_fit": cta_fit,
-        "personalization_fit": personalization_fit,
-        "grounding_fit": grounding_fit,
-        "treatment_fit": treatment_fit,
-        "friction_fit": friction_fit,
-        "trust_penalty": trust_penalty,
-    }
+    return _fallback_score(persona, candidate)
 
 
 def score_candidate(persona: Persona, candidate: StrategyCandidate) -> tuple[float, float]:
     details = score_candidate_details(persona, candidate)
     return details["score"], details["trust"]
+
+
+def prewarm_cache(
+    personas: list[Persona],
+    candidates: list[StrategyCandidate],
+) -> int:
+    """Pre-score representative (persona, candidate) pairs to warm the cache.
+
+    Call after configure_scorer() and before the optimization loop.
+    Returns the number of new LLM calls made.
+    """
+    calls = 0
+    for persona in personas:
+        for candidate in candidates:
+            key = _cache_key(persona, candidate)
+            if key not in _score_cache:
+                score_candidate_details(persona, candidate)
+                calls += 1
+    if calls:
+        persist_cache()
+        print(f"[scorer] Pre-warmed cache with {calls} new scores ({len(_score_cache)} total cached)")
+    return calls

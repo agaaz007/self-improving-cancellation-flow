@@ -1,14 +1,15 @@
 from __future__ import annotations
 
+import os
 from collections import Counter, defaultdict
 from statistics import mean
 import random
 
 from cta_autoresearch.models import FeatureVector, Persona, StrategyCandidate, StrategyScore
-from cta_autoresearch.openai_research import evaluate_candidates_via_api, evaluate_persona_shortlist_via_api
 from cta_autoresearch.personas import build_behavioral_dossier
 from cta_autoresearch.research_settings import ResearchSettings
-from cta_autoresearch.simulator import OFFERS as SIMULATOR_OFFERS, score_candidate_details
+from cta_autoresearch.simulator import configure_scorer, score_candidate_details
+from cta_autoresearch.strategy_policy import OFFERS as SIMULATOR_OFFERS
 from cta_autoresearch.strategy_policy import (
     CONTEXTUAL_GROUNDINGS,
     CREATIVE_TREATMENTS,
@@ -35,7 +36,25 @@ BASELINE = StrategyCandidate(
 )
 
 
-def _score_from_details(candidate: StrategyCandidate, details: list[dict[str, float]], baseline_average: float) -> StrategyScore:
+def _ensure_scorer(settings: ResearchSettings) -> None:
+    """Configure the LLM scorer if API key is available. Idempotent."""
+    if not settings.has_api_key:
+        return
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        configure_scorer(client=client, model=settings.model_name)
+    except Exception:
+        pass  # Fallback scorer will be used
+
+
+def _score_from_details(
+    candidate: StrategyCandidate,
+    details: list[dict[str, float]],
+    baseline_average: float,
+    *,
+    research_meta: dict[str, object] | None = None,
+) -> StrategyScore:
     average_score = mean(item["score"] for item in details)
     retention_score = mean(item["retention"] for item in details)
     revenue_score = mean(item["revenue"] for item in details)
@@ -64,6 +83,9 @@ def _score_from_details(candidate: StrategyCandidate, details: list[dict[str, fl
         revenue_score=revenue_score,
         trust_safety_score=trust_safety,
         component_scores=component_scores,
+        research_trace=None if research_meta is None else research_meta.get("research_trace"),
+        flow_spec=None if research_meta is None else research_meta.get("flow_spec"),
+        experiment_spec=None if research_meta is None else research_meta.get("experiment_spec"),
     )
 
 
@@ -85,17 +107,6 @@ def _aggregate_persona(personas: list[Persona], label: str = "aggregate_cohort")
     )
 
 
-def _detail_or_fallback(
-    score_map: dict[str, dict[str, dict[str, float]]] | None,
-    candidate: StrategyCandidate,
-    target_id: str,
-    persona: Persona,
-) -> dict[str, float]:
-    if score_map is not None:
-        details = score_map.get(candidate_key(candidate), {}).get(target_id)
-        if details is not None:
-            return details
-    return score_candidate_details(persona, candidate)
 
 
 def _candidate_universe(settings: ResearchSettings) -> list[StrategyCandidate]:
@@ -184,7 +195,7 @@ def _select_candidates(
     personas: list[Persona],
     settings: ResearchSettings,
     progress_callback=None,
-) -> tuple[list[StrategyCandidate], list, list[str], int, int]:
+) -> tuple[list[StrategyCandidate], list, list[str], int, int, dict[str, dict[str, object]]]:
     full_universe = _candidate_universe(settings)
     structural_pool = _representative_candidate_pool(full_universe, settings)
     if progress_callback:
@@ -193,6 +204,7 @@ def _select_candidates(
 
     selected: list[StrategyCandidate] = []
     seen: set[str] = set()
+    research_meta_by_candidate: dict[str, dict[str, object]] = {}
 
     def add(candidate: StrategyCandidate) -> None:
         key = candidate_key(candidate)
@@ -206,17 +218,22 @@ def _select_candidates(
         add(candidate)
     for proposal in idea_proposals:
         add(proposal.candidate)
+        research_meta_by_candidate[candidate_key(proposal.candidate)] = {
+            "research_trace": proposal.research_trace,
+            "flow_spec": proposal.flow_spec,
+            "experiment_spec": proposal.experiment_spec,
+            "research_role": proposal.agent_role,
+        }
 
     budget = settings.effective_validation_budget
-    return selected[:budget], idea_proposals, warnings, len(structural_pool), len(full_universe)
+    return selected[:budget], idea_proposals, warnings, len(structural_pool), len(full_universe), research_meta_by_candidate
 
 
 def analyze_search_space(personas: list[Persona], settings: ResearchSettings | None = None, progress_callback=None) -> dict:
     settings = settings or ResearchSettings(population=len(personas))
+    _ensure_scorer(settings)
     if progress_callback:
         progress_callback(0.34, "search-space", "Constructing candidate universe and selecting a representative validation pool.")
-    if settings.api_only:
-        return _analyze_search_space_api_only(personas, settings, progress_callback=progress_callback)
     offers = offer_catalog(settings)
 
     baseline_by_persona = {
@@ -234,7 +251,7 @@ def analyze_search_space(personas: list[Persona], settings: ResearchSettings | N
         for segment, group in segment_personas.items()
     }
 
-    selected_candidates, ideas, warnings, structural_count, full_universe_size = _select_candidates(
+    selected_candidates, ideas, warnings, structural_count, full_universe_size, research_meta_by_candidate = _select_candidates(
         personas,
         settings,
         progress_callback=progress_callback,
@@ -254,12 +271,22 @@ def analyze_search_space(personas: list[Persona], settings: ResearchSettings | N
             for persona in personas
         }
         all_details = list(detail_by_persona.values())
-        score = _score_from_details(candidate, all_details, baseline_average)
+        score = _score_from_details(
+            candidate,
+            all_details,
+            baseline_average,
+            research_meta=research_meta_by_candidate.get(candidate_key(candidate)),
+        )
         results.append(score)
 
         for segment, group in segment_personas.items():
             segment_details = [detail_by_persona[persona.name] for persona in group]
-            segment_score = _score_from_details(candidate, segment_details, baseline_by_segment[segment])
+            segment_score = _score_from_details(
+                candidate,
+                segment_details,
+                baseline_by_segment[segment],
+                research_meta=research_meta_by_candidate.get(candidate_key(candidate)),
+            )
             current = best_by_segment.get(segment)
             if current is None or segment_score.average_score > current.average_score:
                 best_by_segment[segment] = segment_score
@@ -274,6 +301,9 @@ def analyze_search_space(personas: list[Persona], settings: ResearchSettings | N
                 revenue_score=detail["revenue"],
                 trust_safety_score=detail["trust"],
                 component_scores={key: value for key, value in detail.items() if key.endswith("_fit") or key == "trust_penalty"},
+                research_trace=research_meta_by_candidate.get(candidate_key(candidate), {}).get("research_trace"),
+                flow_spec=research_meta_by_candidate.get(candidate_key(candidate), {}).get("flow_spec"),
+                experiment_spec=research_meta_by_candidate.get(candidate_key(candidate), {}).get("experiment_spec"),
             )
             current = best_by_persona.get(persona.name)
             if current is None or persona_score.average_score > current.average_score:
@@ -297,125 +327,12 @@ def analyze_search_space(personas: list[Persona], settings: ResearchSettings | N
         "structural_candidate_count": structural_count,
         "offers": offers,
         "settings": settings,
+        "research_meta_by_candidate": research_meta_by_candidate,
         "active_backend": (
-            f"hybrid:{settings.model_name}+heuristic-validation"
-            if settings.openai_for_research
-            else "heuristic:heuristic-simulator"
+            f"llm-judge:{settings.model_name}"
+            if settings.has_api_key
+            else "fallback:no-api-key"
         ),
-    }
-
-
-def _analyze_search_space_api_only(personas: list[Persona], settings: ResearchSettings, progress_callback=None) -> dict:
-    offers = offer_catalog(settings)
-    segment_personas: dict[str, list[Persona]] = defaultdict(list)
-    for persona in personas:
-        segment_personas[persona.features.segment].append(persona)
-
-    segment_aggregates = {
-        segment: _aggregate_persona(group, label=segment)
-        for segment, group in segment_personas.items()
-    }
-    cohort_persona = _aggregate_persona(personas, label="cohort")
-    selected_candidates, ideas, warnings, structural_count, full_universe_size = _select_candidates(
-        personas,
-        settings,
-        progress_callback=progress_callback,
-    )
-    if progress_callback:
-        progress_callback(0.46, "ideation", f"Prepared {len(ideas)} swarm proposals across {settings.ideation_agents} agents.")
-
-    score_map, api_warnings = evaluate_candidates_via_api(
-        cohort_persona=cohort_persona,
-        segment_personas=segment_aggregates,
-        candidates=selected_candidates,
-        settings=settings,
-        progress_callback=progress_callback,
-    )
-    warnings.extend(api_warnings)
-
-    baseline_detail = _detail_or_fallback(score_map, BASELINE, "cohort", cohort_persona)
-    baseline_average = baseline_detail["score"]
-    baseline_by_segment = {
-        segment: _detail_or_fallback(score_map, BASELINE, f"segment::{segment}", aggregate)["score"]
-        for segment, aggregate in segment_aggregates.items()
-    }
-
-    results: list[StrategyScore] = []
-    best_by_segment: dict[str, StrategyScore] = {}
-    best_by_persona: dict[str, StrategyScore] = {}
-
-    for candidate in selected_candidates:
-        cohort_detail = _detail_or_fallback(score_map, candidate, "cohort", cohort_persona)
-        results.append(_score_from_details(candidate, [cohort_detail], baseline_average))
-
-        for segment, aggregate in segment_aggregates.items():
-            segment_detail = _detail_or_fallback(score_map, candidate, f"segment::{segment}", aggregate)
-            segment_score = _score_from_details(candidate, [segment_detail], baseline_by_segment[segment])
-            current = best_by_segment.get(segment)
-            if current is None or segment_score.average_score > current.average_score:
-                best_by_segment[segment] = segment_score
-
-    shortlist_size = min(max(settings.top_n * settings.persona_shortlist_multiplier, 12), len(results))
-    shortlist = [score.candidate for score in results[:shortlist_size]]
-    persona_score_map, persona_warnings = evaluate_persona_shortlist_via_api(
-        personas=personas,
-        candidates=shortlist,
-        settings=settings,
-        progress_callback=progress_callback,
-    )
-    warnings.extend(persona_warnings)
-
-    baseline_by_persona = {}
-    if persona_score_map is not None:
-        for persona in personas:
-            baseline_by_persona[persona.name] = _detail_or_fallback(
-                persona_score_map,
-                BASELINE,
-                f"persona::{persona.name}",
-                persona,
-            )["score"]
-
-    for persona in personas:
-        current_best: StrategyScore | None = None
-        for candidate in shortlist:
-            target_id = f"persona::{persona.name}"
-            detail = _detail_or_fallback(persona_score_map, candidate, target_id, persona)
-            baseline = baseline_by_persona.get(persona.name)
-            if baseline is None:
-                baseline = score_candidate_details(persona, BASELINE)["score"]
-            persona_score = StrategyScore(
-                candidate=candidate,
-                average_score=detail["score"],
-                baseline_lift=detail["score"] - baseline,
-                retention_score=detail["retention"],
-                revenue_score=detail["revenue"],
-                trust_safety_score=detail["trust"],
-                component_scores={key: value for key, value in detail.items() if key.endswith("_fit") or key == "trust_penalty"},
-            )
-            if current_best is None or persona_score.average_score > current_best.average_score:
-                current_best = persona_score
-        if current_best is not None:
-            best_by_persona[persona.name] = current_best
-
-    results.sort(key=lambda item: (item.average_score, item.trust_safety_score, item.revenue_score), reverse=True)
-    if progress_callback:
-        progress_callback(0.94, "ranking", "Ranked API-scored strategies and prepared persona winners.")
-    active_backend = "fallback:heuristic-simulator"
-    if score_map is not None:
-        active_backend = f"api_only:{settings.model_name}"
-    return {
-        "baseline_average": baseline_average,
-        "results": results,
-        "best_by_segment": best_by_segment,
-        "best_by_persona": best_by_persona,
-        "idea_proposals": ideas,
-        "warnings": list(dict.fromkeys(warnings)),
-        "candidate_universe_size": full_universe_size,
-        "validated_candidate_count": len(results),
-        "structural_candidate_count": structural_count,
-        "offers": offers,
-        "settings": settings,
-        "active_backend": active_backend,
     }
 
 
@@ -461,6 +378,12 @@ def score_to_dict(
     }
     if sample_persona:
         payload["sample_message"] = render_message(sample_persona, score.candidate, settings)
+    if score.research_trace:
+        payload["research_trace"] = score.research_trace
+    if score.flow_spec:
+        payload["flow_spec"] = score.flow_spec
+    if score.experiment_spec:
+        payload["experiment_spec"] = score.experiment_spec
     return payload
 
 
@@ -506,9 +429,16 @@ def build_report(personas: list[Persona], top_n: int = 5, settings: ResearchSett
                 f"- Revenue score: {result.revenue_score:.4f}",
                 f"- Trust-safety score: {result.trust_safety_score:.4f}",
                 f"- Sample message: {render_message(representative, result.candidate, settings)}",
-                "",
             ]
         )
+        if result.research_trace:
+            lines.append(f"- Hypothesis: {result.research_trace.get('user_state_hypothesis', result.research_trace.get('rescue_objective', ''))}")
+            api_eval = result.research_trace.get("api_evaluation")
+            if isinstance(api_eval, dict) and api_eval.get("why_it_wins_or_loses"):
+                lines.append(f"- Critique: {api_eval['why_it_wins_or_loses']}")
+        if result.experiment_spec:
+            lines.append(f"- Experiment: {result.experiment_spec.get('rollout_suggestion', '')}")
+        lines.append("")
 
     return "\n".join(lines).strip() + "\n", metrics
 
@@ -527,6 +457,7 @@ def build_dashboard_payload(personas: list[Persona], settings: ResearchSettings 
 
     return {
         "meta": {
+            "payload_format_version": 2,
             "personas_evaluated": len(personas),
             "search_space_size": analysis["candidate_universe_size"],
             "validated_strategy_count": analysis["validated_candidate_count"],
@@ -587,12 +518,16 @@ def build_dashboard_payload(personas: list[Persona], settings: ResearchSettings 
             {
                 "id": proposal.id,
                 "agent_role": proposal.agent_role,
+                "research_role": proposal.agent_role,
                 "label": proposal.label,
                 "thesis": proposal.thesis,
                 "rationale": proposal.rationale,
                 "target_segment": proposal.target_segment,
                 "confidence": proposal.confidence,
                 "sample_message": proposal.sample_message,
+                "research_trace": proposal.research_trace,
+                "flow_spec": proposal.flow_spec,
+                "experiment_spec": proposal.experiment_spec,
             }
             for proposal in analysis["idea_proposals"]
         ],

@@ -50,13 +50,12 @@ def build_dashboard_dataset(**overrides: object) -> dict:
         "selected": {
             **ui_settings.to_dict(),
             "depth_mode": ui_settings.strategy_depth,
-            "model_provider": "openai" if ui_settings.uses_openai else "heuristic",
+            "model_provider": "openai",
             "top_n": 25,
         },
         "depth_modes": [{"value": key, "label": value["label"]} for key, value in catalog["depth_options"].items()],
         "persona_richness": [{"value": key, "label": value["label"]} for key, value in catalog["persona_richness_options"].items()],
         "model_providers": [
-            {"value": "heuristic", "label": "Heuristic research engine", "default_model": "heuristic-simulator", "requires_api_key": False},
             {"value": "openai", "label": "OpenAI hybrid ideation", "default_model": ui_settings.model_name, "requires_api_key": True},
         ],
     }

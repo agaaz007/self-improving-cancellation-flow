@@ -254,6 +254,10 @@ class EnrichedRowToPersonaTest(unittest.TestCase):
 
 
 class SimulatorEvalTest(unittest.TestCase):
+    def setUp(self) -> None:
+        from cta_autoresearch.simulator import reset_scorer
+        reset_scorer()
+
     def _sample_rows(self) -> list[dict]:
         return [
             {"primary_reason": "quality_bug", "plan_tier": "super_learner",
@@ -272,11 +276,11 @@ class SimulatorEvalTest(unittest.TestCase):
         rows = self._sample_rows()
         result_control = simulator_eval(rows, lambda r: "control_empathic_exit")
         result_pause = simulator_eval(rows, lambda r: "pause_plan_relief")
-        # Scores must differ
+        # Scores must differ — control (no offer) should score lower than pause
         self.assertNotAlmostEqual(
             result_control.composite_score,
             result_pause.composite_score,
-            places=4,
+            places=2,
         )
 
     def test_alignment_differs_by_policy(self) -> None:

@@ -72,7 +72,6 @@ class LabCliTest(unittest.TestCase):
                 persona_richness="rich",
                 ideation_agents=3,
                 validation_budget=80,
-                execution_mode="api_only",
                 model_name="gpt-5.4-mini",
                 output_dir=tmpdir,
                 port=8765,

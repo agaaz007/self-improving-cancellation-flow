@@ -79,6 +79,23 @@ STRATEGY_EXPLORATION_RATE = 0.15
 DEDUP_MIN_DIFF = 2
 STRATEGIES_PER_GENERATION = 3
 
+# ── Prior inflation cap ──────────────────────────────────────────────
+# Posteriors can't grow beyond K * (impressions + PRIOR_BASE) per arm.
+# This prevents the optimizer from "writing fake evidence" — alpha=1108
+# on 5 impressions is fiction. With K=3 and PRIOR_BASE=2, an arm with
+# 5 impressions can reach at most alpha+beta = 3*(5+2) = 21.
+PRIOR_CAP_K = 3.0
+PRIOR_CAP_BASE = 2.0
+
+# ── Holdout eval ─────────────────────────────────────────────────────
+# Split eval cohort into train/holdout to detect overfitting.
+HOLDOUT_FRACTION = 0.2
+
+# ── Minimum lift threshold ───────────────────────────────────────────
+# Require actual positive lift to accept a mutation, not just >= 0.
+# This prevents drift from trivially-accepted tiny changes.
+MIN_SAVE_LIFT = 0.0005  # 0.05% minimum improvement to keep
+
 
 # ── Specialist agent roles (ported from Melbourne swarm) ──────────────
 
@@ -229,15 +246,20 @@ exploration balance, and routing rules.
 {json.dumps(available_actions)}
 
 ## Mutation Types You Can Propose
-1. arm_priors: Adjust alpha/beta for a specific action. Specify action_id, alpha_delta, beta_delta.
-2. context_arms: Adjust alpha/beta for a reason|plan|action combo. Specify context_key, alpha_delta, beta_delta.
+1. arm_priors: Adjust alpha/beta for a specific action. Specify action_id, alpha_delta (max ±5), beta_delta (max ±5). NOTE: priors are capped proportional to impressions — large deltas will be clipped.
+2. context_arms: Adjust alpha/beta for a reason|plan|action combo. Specify context_key, alpha_delta (max ±3), beta_delta (max ±3).
 3. exploration_rate: Change exploration rate. Specify new_rate (0.02 to 0.35).
 4. discount_cap: Change discount_cap_30d. Specify new_cap (0 to 5).
 5. reason_routing: Propose a deny rule. Specify reason and action_id to block.
+6. strategy_swap: Change HOW an action is presented (message angle, proof style, etc.). Specify action_id and dims dict with dimension overrides. Available dimensions: {list(MUTABLE_DIMENSIONS.keys())}
+
+IMPORTANT: Only use these 6 mutation types. Do NOT propose "holdout_rate" or other types — they will be rejected.
+
+Prefer strategy_swap when you want to change presentation. Use arm_priors/context_arms sparingly — priors are capped to prevent inflation.
 
 Respond with JSON only. No markdown, no explanation outside the JSON.
 {{
-  "mutation_type": "<one of the 5 types above>",
+  "mutation_type": "<one of the 6 types above>",
   "parameters": {{ ... type-specific parameters ... }},
   "rationale": "<one sentence explaining why this should improve save_rate>"
 }}"""
@@ -316,8 +338,42 @@ def _parse_llm_mutation(
         state["_denylist_proposals"] = denylist
         desc = f"[LLM] deny {params['action_id']} for {params['reason']} — {rationale}"
 
+    elif mutation_type == "strategy_swap":
+        action_id = params.get("action_id", "")
+        dims_override = params.get("dims", {})
+        pool = state.get("strategy_pool", {})
+        strategies = pool.get(action_id, {})
+        if strategies and dims_override:
+            # Find best strategy and apply dimension overrides
+            best_sid = max(strategies.keys(), key=lambda s: strategies[s].get("mean_score", 0.0))
+            strat = strategies[best_sid]
+            new_dims = dict(strat.get("dims", {}))
+            changes = []
+            for dim_name, new_val in dims_override.items():
+                if dim_name in MUTABLE_DIMENSIONS and new_val in MUTABLE_DIMENSIONS[dim_name]:
+                    old_val = new_dims.get(dim_name, "")
+                    if old_val != new_val:
+                        new_dims[dim_name] = new_val
+                        changes.append(f"{dim_name}: {old_val}->{new_val}")
+            if changes:
+                strategies[best_sid] = {
+                    **strat,
+                    "dims": new_dims,
+                    "mean_score": 0.0,
+                    "score_std": 0.0,
+                    "n_evals": 0,
+                }
+                pool[action_id] = strategies
+                state["strategy_pool"] = pool
+            desc = f"[LLM] strategy_swap {action_id}:{best_sid} [{', '.join(changes)}] — {rationale}"
+        else:
+            desc = f"[LLM] strategy_swap {action_id} (no changes) — {rationale}"
+
     else:
         raise ValueError(f"Unknown mutation_type: {mutation_type}")
+
+    # Enforce prior cap after any mutation
+    state = _enforce_prior_cap(state)
 
     return mutation_type, state, desc
 
@@ -480,6 +536,7 @@ def _mutate_arm_priors(
     arms_global[worst_id]["beta"] = float(arms_global[worst_id]["beta"]) + boost * 0.6
 
     state["arms_global"] = arms_global
+    state = _enforce_prior_cap(state)
     description = (
         f"boost {best_id} alpha +{boost:.2f}, "
         f"penalize {worst_id} beta +{boost * 0.6:.2f}"
@@ -524,6 +581,7 @@ def _mutate_context_arms(
         description += f", penalize {bottom_key} beta +{boost * 0.5:.2f}"
 
     state["arms_context"] = arms_context
+    state = _enforce_prior_cap(state)
     return state, description
 
 
@@ -618,12 +676,100 @@ def _mutate_reason_routing(
     return state, f"propose deny {action_id} for reason={reason} (win_rate={win_rate:.2f}, n={int(impressions)})"
 
 
+def _enforce_prior_cap(state: dict[str, Any]) -> dict[str, Any]:
+    """Enforce prior inflation cap: alpha+beta <= K*(impressions+BASE).
+
+    This is the key fix for Problem 3 (prior inflation). Without this,
+    the optimizer can boost alpha to 1108 on 5 impressions — pure fiction.
+    The cap ensures posteriors stay proportional to actual evidence.
+    """
+    for arms_key in ("arms_global", "arms_context"):
+        arms = state.get(arms_key, {})
+        for key, arm in arms.items():
+            impressions = float(arm.get("impressions", 0))
+            cap = PRIOR_CAP_K * (impressions + PRIOR_CAP_BASE)
+            alpha = float(arm.get("alpha", 1.0))
+            beta = float(arm.get("beta", 1.0))
+            total = alpha + beta
+            if total > cap and total > 0:
+                # Scale down proportionally, preserving the ratio
+                scale = cap / total
+                arm["alpha"] = round(alpha * scale, 4)
+                arm["beta"] = round(beta * scale, 4)
+    return state
+
+
+def _mutate_strategy_swap(
+    state: dict[str, Any],
+    rng: random.Random,
+    intensity: float = 1.0,
+) -> tuple[dict[str, Any], str]:
+    """Mutate strategy presentation dimensions — the Karpathy-style mutable surface.
+
+    Instead of inflating priors (writing fake evidence), this changes HOW
+    an action is presented: message angle, proof style, personalization, etc.
+    This is closer to Karpathy's pattern where you change code (presentation)
+    and measure the effect, not manipulate weights directly.
+    """
+    state = copy.deepcopy(state)
+    pool = state.get("strategy_pool", {})
+    if not pool:
+        return state, "no strategy pool"
+
+    # Pick a random action and its best strategy
+    action_ids = [a for a in pool if pool[a]]
+    if not action_ids:
+        return state, "no strategies to swap"
+
+    action_id = rng.choice(action_ids)
+    strategies = pool[action_id]
+    if not strategies:
+        return state, f"no strategies for {action_id}"
+
+    # Pick the best strategy by mean_score
+    best_sid = max(strategies.keys(), key=lambda s: strategies[s].get("mean_score", 0.0))
+    best_strat = strategies[best_sid]
+    dims = dict(best_strat.get("dims", {}))
+
+    # Mutate 1-2 dimensions (more with higher intensity)
+    n_dims = min(len(MUTABLE_DIMENSIONS), max(1, int(intensity)))
+    dims_to_change = rng.sample(list(MUTABLE_DIMENSIONS.keys()), n_dims)
+
+    changes = []
+    for dim_name in dims_to_change:
+        catalog = MUTABLE_DIMENSIONS[dim_name]
+        old_val = dims.get(dim_name, catalog[0])
+        # Pick a different value
+        options = [v for v in catalog if v != old_val]
+        if options:
+            new_val = rng.choice(options)
+            dims[dim_name] = new_val
+            changes.append(f"{dim_name}: {old_val}->{new_val}")
+
+    if not changes:
+        return state, "no dimension changes possible"
+
+    # Update the strategy in the pool
+    strategies[best_sid] = {
+        **best_strat,
+        "dims": dims,
+        "mean_score": 0.0,  # Reset score — needs re-evaluation
+        "score_std": 0.0,
+        "n_evals": 0,
+    }
+    pool[action_id] = strategies
+    state["strategy_pool"] = pool
+
+    return state, f"strategy_swap {action_id}:{best_sid} [{', '.join(changes)}]"
+
+
 MUTATION_STRATEGIES = [
     ("arm_priors", _mutate_arm_priors),
     ("context_arms", _mutate_context_arms),
     ("exploration_rate", _mutate_exploration_rate),
     ("discount_cap", _mutate_discount_cap),
     ("reason_routing", _mutate_reason_routing),
+    ("strategy_swap", _mutate_strategy_swap),
 ]
 
 
@@ -798,6 +944,8 @@ class PolicyOptimizer:
         self._role_index = 0
         self._eval_cohort: list[dict] | None = None
         self._eval_personas: list[Any] | None = None
+        self._holdout_cohort: list[dict] | None = None
+        self._holdout_personas: list[Any] | None = None
         if eval_cohort_path:
             self._load_eval_cohort(Path(eval_cohort_path))
         # Initialize strategy pool (migrate from old candidate_strategies if needed)
@@ -837,12 +985,32 @@ class PolicyOptimizer:
             }
 
     def _load_eval_cohort(self, path: Path) -> None:
-        """Load eval cohort rows and pre-compute personas."""
+        """Load eval cohort rows, split into train/holdout, pre-compute personas.
+
+        The holdout set (20%) is NEVER used for optimization decisions — only
+        for reporting overfitting. The train set (80%) drives keep/discard.
+        This is the fix for Problem 3: "learning the simulator vs real users."
+        """
         payload = json.loads(path.read_text())
         rows = payload.get("rows", payload) if isinstance(payload, dict) else payload
-        self._eval_cohort = rows
+
+        # Deterministic split so holdout is stable across runs
+        split_rng = random.Random(42)
+        indices = list(range(len(rows)))
+        split_rng.shuffle(indices)
+        holdout_n = max(1, int(len(rows) * HOLDOUT_FRACTION))
+        holdout_idx = set(indices[:holdout_n])
+
+        train_rows = [rows[i] for i in range(len(rows)) if i not in holdout_idx]
+        holdout_rows = [rows[i] for i in range(len(rows)) if i in holdout_idx]
+
+        self._eval_cohort = train_rows
         self._eval_personas = [
-            enriched_row_to_persona(r, i) for i, r in enumerate(rows)
+            enriched_row_to_persona(r, i) for i, r in enumerate(train_rows)
+        ]
+        self._holdout_cohort = holdout_rows
+        self._holdout_personas = [
+            enriched_row_to_persona(r, i) for i, r in enumerate(holdout_rows)
         ]
 
     # ── Hierarchical action + strategy selection ──────────────────────
@@ -1036,6 +1204,24 @@ class PolicyOptimizer:
                 strat["score_std"] = result["std"]
                 strat["n_evals"] = result["n"]
 
+        # 2b. Sync strategy_arms posteriors from simulator scores.
+        # This bridges Phase A (strategy scoring) and Phase B (bandit selection)
+        # so strategy_arms reflect actual performance instead of staying at (1,1).
+        # We convert mean_score into pseudo-observations: alpha ~ score * n_evals,
+        # beta ~ (1 - score) * n_evals, capped at n_evals to stay evidence-based.
+        for action_id, strategies in pool.items():
+            for sid, strat in strategies.items():
+                arm_key = f"{action_id}:{sid}"
+                score = float(strat.get("mean_score", 0.0))
+                n = max(1, int(strat.get("n_evals", 1)))
+                # Convert score (0-1) into pseudo-count evidence
+                pseudo_n = min(n, 20)  # cap so we don't inflate beyond evidence
+                strategy_arms[arm_key] = {
+                    "alpha": round(1.0 + score * pseudo_n, 4),
+                    "beta": round(1.0 + (1.0 - score) * pseudo_n, 4),
+                }
+            logs.append(f"synced strategy_arms for {action_id} ({len(strategies)} strategies)")
+
         # 3. Prune to top K per action using LCB
         lcb_lambda = float(self.runtime.state.get("config", {}).get("lcb_lambda", LCB_LAMBDA))
         for action_id in list(pool.keys()):
@@ -1083,7 +1269,11 @@ class PolicyOptimizer:
         self.runtime._persist_state()
 
     def _apply_state(self, new_state: dict[str, Any]) -> None:
-        """Apply a mutated state to the runtime (Phase B bandit tuning only)."""
+        """Apply a mutated state to the runtime.
+
+        Phase B mutations (arm_priors, context_arms, config) and Phase A-style
+        mutations (strategy_swap) are both applied here. Prior cap is enforced.
+        """
         self.runtime.state["arms_global"] = copy.deepcopy(new_state.get("arms_global", {}))
         self.runtime.state["arms_context"] = copy.deepcopy(new_state.get("arms_context", {}))
         if "config" in new_state:
@@ -1092,8 +1282,11 @@ class PolicyOptimizer:
             self.runtime.holdout_rate = float(config.get("holdout_rate", self.runtime.holdout_rate))
             self.runtime.discount_cap_30d = int(config.get("discount_cap_30d", self.runtime.discount_cap_30d))
             self.runtime.state["config"] = copy.deepcopy(config)
-        # strategy_pool, strategy_arms, generation_meta are Phase A's responsibility
-        # and are NOT mutated by Phase B bandit tuning
+        # Apply strategy pool changes (from strategy_swap mutations)
+        if "strategy_pool" in new_state:
+            self.runtime.state["strategy_pool"] = copy.deepcopy(new_state["strategy_pool"])
+        # Enforce prior cap to prevent inflation
+        _enforce_prior_cap(self.runtime.state)
         self.runtime._persist_state()
 
     def _log_result(self, result: RunResult) -> None:
@@ -1143,11 +1336,16 @@ class PolicyOptimizer:
         )
         response_text = response.choices[0].message.content or ""
 
-        mutation_type, mutated_state, description = _parse_llm_mutation(
-            response_text, snapshot, self.rng, self.intensity,
-        )
-        description = f"[{role['label']}] {description}"
-        return mutation_type, mutated_state, description
+        try:
+            mutation_type, mutated_state, description = _parse_llm_mutation(
+                response_text, snapshot, self.rng, self.intensity,
+            )
+            description = f"[{role['label']}] {description}"
+            return mutation_type, mutated_state, description
+        except (ValueError, KeyError, json.JSONDecodeError) as parse_err:
+            # Bad LLM output this iteration — fall back to random for just this one
+            print(f"[warn] LLM parse error: {parse_err} — using random mutation this iteration")
+            return self._propose_random(snapshot)
 
     def run_one(self, run_id: int) -> RunResult:
         """Execute a single optimize-evaluate-decide iteration.
@@ -1233,8 +1431,9 @@ class PolicyOptimizer:
             )
             regression_pass = bool(regression.get("pass", False))
 
-        # 7. Keep or discard
-        improved = save_lift >= 0.0 and reward_lift >= -0.01
+        # 7. Keep or discard — require actual positive lift, not just >= 0
+        # This fixes Problem 4: 98% acceptance rate from trivial changes (drift)
+        improved = save_lift >= MIN_SAVE_LIFT and reward_lift >= -0.005
         keep = improved and regression_pass
 
         if keep:
@@ -1303,6 +1502,34 @@ class PolicyOptimizer:
         )
         self._log_result(gen_result)
 
+    def _configure_llm_scorer(self) -> None:
+        """Configure the LLM judge as the scorer if API key is available."""
+        from cta_autoresearch.simulator import configure_scorer, prewarm_cache
+
+        try:
+            client = self._get_openai_client()
+        except Exception:
+            print("[scorer] No OpenAI client — using fallback scorer")
+            return
+
+        cache_path = self.output_dir / "llm_score_cache.json"
+        configure_scorer(client=client, model=self.openai_model, cache_path=cache_path)
+
+        # Pre-warm cache with representative (persona, default_candidate) pairs
+        if self._eval_personas:
+            default_candidates = [
+                self._resolve_candidate(action_id)
+                for action_id in self.runtime.actions
+            ]
+            # Sample one persona per segment
+            seen_segments: set[str] = set()
+            sample_personas: list = []
+            for p in self._eval_personas:
+                if p.features.segment not in seen_segments:
+                    seen_segments.add(p.features.segment)
+                    sample_personas.append(p)
+            prewarm_cache(sample_personas, default_candidates)
+
     def optimize(
         self,
         iterations: int = 20,
@@ -1324,6 +1551,9 @@ class PolicyOptimizer:
                 save_probability=bootstrap_save_probability,
             )
 
+        # Configure LLM scorer and pre-warm cache
+        self._configure_llm_scorer()
+
         # Measure starting baseline
         baseline = self._baseline_metrics()
         self._best_save_rate = baseline["save_rate"]
@@ -1335,6 +1565,24 @@ class PolicyOptimizer:
             results.append(result)
 
         return results
+
+    def _holdout_metrics(self) -> dict[str, float] | None:
+        """Evaluate on holdout set to detect overfitting. Never used for keep/discard."""
+        if self._holdout_cohort is None:
+            return None
+        result = simulator_eval(
+            self._holdout_cohort,
+            self._simulate_action,
+            personas=self._holdout_personas,
+            candidate_resolver=self._resolve_candidate,
+        )
+        return {
+            "save_rate": result.expected_retention_score,
+            "composite_score": result.composite_score,
+            "alignment_score": result.alignment_score,
+            "trust_score": result.trust_safety_score,
+            "n_users": result.total_users,
+        }
 
     def summary(self) -> dict[str, Any]:
         """Produce a summary report of the optimization run."""
@@ -1352,7 +1600,7 @@ class PolicyOptimizer:
         # Collect all mutation types that appeared
         all_types = sorted({r.mutation_type for r in self.history if r.mutation_type != "skip"})
 
-        return {
+        result = {
             "status": "complete",
             "mode": self.mode,
             "iterations": len(self.history),
@@ -1379,6 +1627,22 @@ class PolicyOptimizer:
             "results_path": str(self.results_path),
         }
 
+        # Holdout overfitting check — compare train vs holdout metrics
+        holdout = self._holdout_metrics()
+        if holdout:
+            result["holdout"] = {
+                "save_rate": round(holdout["save_rate"], 4),
+                "composite_score": round(holdout["composite_score"], 4),
+                "n_users": holdout["n_users"],
+            }
+            train_sr = result["ending_save_rate"]
+            holdout_sr = holdout["save_rate"]
+            gap = train_sr - holdout_sr
+            result["overfit_gap"] = round(gap, 4)
+            result["overfit_warning"] = gap > 0.03  # >3% gap = likely overfitting
+
+        return result
+
     def print_summary(self) -> None:
         """Print a compact metric block in the autoresearch style."""
         s = self.summary()
@@ -1400,6 +1664,13 @@ class PolicyOptimizer:
         print(f"discarded: {s.get('discarded', 0)}")
         for name, stats in s.get("mutation_breakdown", {}).items():
             print(f"  {name}: {stats['kept']}/{stats['attempted']} kept")
+        # Holdout overfitting check
+        if "holdout" in s:
+            h = s["holdout"]
+            print(f"holdout_save_rate: {h['save_rate']} (n={h['n_users']})")
+            print(f"overfit_gap: {s.get('overfit_gap', 0)}")
+            if s.get("overfit_warning"):
+                print("⚠ OVERFIT WARNING: train-holdout gap > 3%")
 
 
 # ── CLI entry point ────────────────────────────────────────────────────
@@ -1453,6 +1724,11 @@ def build_parser():
         "--eval-cohort", type=str, default="",
         help="Path to enriched JSON for simulator-based eval (the Karpathy harness).",
     )
+    parser.add_argument(
+        "--load-state", type=str, default="",
+        help="Load policy state from a JSON file (for phase compounding). "
+             "Overrides warm-start for subsequent phases.",
+    )
     return parser
 
 
@@ -1465,8 +1741,33 @@ def main() -> None:
 
     runtime = CancelPolicyRuntime(data_dir / "policy", seed=args.seed)
 
-    # Optional warm-start from historical data
-    if args.warm_start_file:
+    # Load state from previous phase (for phase compounding)
+    # --load-state takes priority over --warm-start-file since it carries
+    # the full optimized state (arms, strategy pool, generation meta) rather
+    # than just re-seeding posteriors from raw rows.
+    if args.load_state:
+        state_path = Path(args.load_state)
+        if state_path.exists():
+            loaded = json.loads(state_path.read_text())
+            # Merge loaded state into runtime, preserving structural defaults
+            for key in ("arms_global", "arms_context", "config", "strategy_pool",
+                        "strategy_arms", "generation_meta", "metrics"):
+                if key in loaded:
+                    runtime.state[key] = loaded[key]
+            # Sync config fields back to runtime attributes
+            config = loaded.get("config", {})
+            if "exploration_rate" in config:
+                runtime.exploration_rate = float(config["exploration_rate"])
+            if "holdout_rate" in config:
+                runtime.holdout_rate = float(config["holdout_rate"])
+            if "discount_cap_30d" in config:
+                runtime.discount_cap_30d = int(config["discount_cap_30d"])
+            runtime._persist_state()
+            print(f"Loaded state from {state_path} (phase compounding).")
+        else:
+            print(f"[warn] --load-state file not found: {state_path}")
+    elif args.warm_start_file:
+        # Warm-start from historical data (Phase 1 only)
         warm_path = Path(args.warm_start_file)
         if warm_path.exists():
             payload = json.loads(warm_path.read_text())

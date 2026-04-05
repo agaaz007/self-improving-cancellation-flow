@@ -11,6 +11,14 @@ try:
 except ImportError:  # pragma: no cover
     OpenAI = None
 
+from cta_autoresearch.autoresearch import (
+    FlowResearchSpec,
+    ResearchFinding,
+    build_experiment_spec,
+    compile_flow_spec,
+    flow_spec_to_payload,
+    research_trace_payload,
+)
 from cta_autoresearch.models import FeatureVector, IdeaProposal, Persona, StrategyCandidate
 from cta_autoresearch.research_settings import ResearchSettings
 from cta_autoresearch.simulator import score_candidate_details
@@ -143,11 +151,78 @@ def _idea_rationale(role_id: str, candidate: StrategyCandidate) -> str:
     )
 
 
+def _findings_for_spec(spec: FlowResearchSpec) -> list[ResearchFinding]:
+    findings = [
+        ResearchFinding(
+            title="Primary hypothesis",
+            detail=spec.user_state_hypothesis,
+            lens="retention",
+            severity="high",
+        ),
+        ResearchFinding(
+            title="Cancellation moment",
+            detail=spec.cancellation_moment_hypothesis,
+            lens="behavior",
+            severity="medium",
+        ),
+    ]
+    findings.extend(
+        ResearchFinding(title="Trust risk", detail=item, lens="trust", severity="medium")
+        for item in spec.trust_risks
+    )
+    findings.extend(
+        ResearchFinding(title="Economic risk", detail=item, lens="economics", severity="medium")
+        for item in spec.economic_risks
+    )
+    return findings
+
+
+def _proposal_from_spec(
+    *,
+    proposal_id: str,
+    role_label: str,
+    spec: FlowResearchSpec,
+    candidate: StrategyCandidate,
+    compile_notes: list[str],
+    settings: ResearchSettings,
+    sample_persona: Persona,
+    label: str,
+    thesis: str,
+    rationale: str,
+) -> IdeaProposal:
+    findings = _findings_for_spec(spec)
+    experiment = build_experiment_spec(spec, candidate)
+    return IdeaProposal(
+        id=proposal_id,
+        agent_role=role_label,
+        label=label,
+        thesis=thesis,
+        rationale=rationale,
+        target_segment=spec.target_segment,
+        confidence=spec.confidence,
+        candidate=candidate,
+        sample_message=render_message(sample_persona, candidate, settings),
+        flow_spec=flow_spec_to_payload(spec),
+        research_trace=research_trace_payload(
+            spec=spec,
+            findings=findings,
+            compile_notes=compile_notes,
+        ),
+        experiment_spec=experiment.to_dict(),
+    )
+
+
 def _heuristic_proposals(
     personas: list[Persona],
     candidate_universe: list[StrategyCandidate],
     settings: ResearchSettings,
 ) -> list[IdeaProposal]:
+    """Generate proposals from heuristic scoring — no fabricated research specs.
+
+    Heuristic proposals are honest about what they are: ranked candidates from
+    the simulator, not hypothesis-driven research. Only LLM-generated proposals
+    carry research_trace/flow_spec/experiment_spec metadata.
+    """
     by_segment: dict[str, list[Persona]] = defaultdict(list)
     for persona in personas:
         by_segment[persona.features.segment].append(persona)
@@ -182,26 +257,29 @@ def _heuristic_proposals(
             key = candidate_key(candidate)
             if key in used_candidates:
                 continue
-            selected.append(
-                IdeaProposal(
-                    id=f"{role_id}::{key}",
-                    agent_role=role_label,
-                    label=candidate_label(candidate, offers=offers),
-                    thesis=_idea_thesis(role_label, segment_persona.features.segment, candidate, settings),
-                    rationale=_idea_rationale(role_id, candidate),
-                    target_segment=segment_persona.features.segment,
-                    confidence=round(
-                        min(
-                            score_candidate_details(segment_persona, candidate)["trust"]
-                            + _role_bonus(candidate, role_id),
-                            0.98,
-                        ),
-                        4,
-                    ),
-                    candidate=candidate,
-                    sample_message=render_message(segment_persona, candidate, settings),
-                )
+            confidence = round(
+                min(
+                    score_candidate_details(segment_persona, candidate)["trust"]
+                    + _role_bonus(candidate, role_id),
+                    0.98,
+                ),
+                4,
             )
+            proposal_id = f"{role_id}::{key}"
+            selected.append(IdeaProposal(
+                id=proposal_id,
+                agent_role=role_label,
+                label=candidate_label(candidate, offers=offers),
+                thesis=_idea_thesis(role_label, segment_persona.features.segment, candidate, settings),
+                rationale=_idea_rationale(role_id, candidate),
+                target_segment=segment_persona.features.segment,
+                confidence=confidence,
+                candidate=candidate,
+                sample_message=render_message(segment_persona, candidate, settings),
+                research_trace=None,
+                flow_spec=None,
+                experiment_spec=None,
+            ))
             used_candidates.add(key)
             proposals_for_role += 1
             if proposals_for_role >= settings.idea_proposals_per_agent:
@@ -282,15 +360,21 @@ def _openai_proposals(
         role_id = ROLE_LABEL_TO_ID[role_label]
         if progress_callback:
             progress = 0.48 + 0.14 * ((index - 1) / total_roles)
-            progress_callback(progress, "ideation", f"{role_label} is drafting structured save strategies.")
+            progress_callback(progress, "ideation", f"{role_label} is drafting hypothesis-first cancellation rescues.")
         prompt = "\n".join(
             [
                 "You are one specialist agent in a churn-reduction research swarm.",
                 f"Specialty: {role_label}.",
-                f"Propose exactly {settings.idea_proposals_per_agent} structured strategy ideas for cancellation-save flows.",
-                "Use only the allowed catalog keys below.",
+                f"Propose exactly {settings.idea_proposals_per_agent} cancellation-save flow ideas.",
+                "Think from first principles about why the user is cancelling and what rescue flow would most likely retain them.",
+                "You may reason in open-ended terms first, but you must still supply the closest matching structured candidate fields.",
                 "Output JSON only as an array of objects with keys:",
-                'label, thesis, rationale, target_segment, confidence, message_angle, proof_style, offer, cta, personalization, contextual_grounding, creative_treatment, friction_reducer.',
+                (
+                    "label, thesis, rationale, target_segment, confidence, user_state_hypothesis, "
+                    "cancellation_moment_hypothesis, rescue_objective, step_sequence, copy_blocks, offer_logic, "
+                    "cta_logic, branch_logic, trust_risks, economic_risks, evaluation_notes, falsifiable_assumption, "
+                    "message_angle, proof_style, offer, cta, personalization, contextual_grounding, creative_treatment, friction_reducer."
+                ),
                 "Allowed catalog:",
                 _catalog_prompt(settings),
                 "Persona segments:",
@@ -304,37 +388,68 @@ def _openai_proposals(
             max_output_tokens=max(1400, 650 * settings.idea_proposals_per_agent),
         )
         for item in _parse_response_payload(response.output_text):
-            candidate = StrategyCandidate(
-                message_angle=str(item.get("message_angle", "")),
-                proof_style=str(item.get("proof_style", "")),
-                offer=str(item.get("offer", "")),
-                cta=str(item.get("cta", "")),
-                personalization=str(item.get("personalization", "")),
+            segment = str(item.get("target_segment", "unknown"))
+            fallback_persona = next((persona for persona in personas if persona.features.segment == segment), personas[0])
+            explicit_candidate = StrategyCandidate(
+                message_angle=str(item.get("message_angle", "progress_reflection")),
+                proof_style=str(item.get("proof_style", "similar_user_story")),
+                offer=str(item.get("offer", "none")),
+                cta=str(item.get("cta", "stay_on_current_plan")),
+                personalization=str(item.get("personalization", "contextual")),
                 contextual_grounding=str(item.get("contextual_grounding", "generic")),
                 creative_treatment=str(item.get("creative_treatment", "plain_note")),
                 friction_reducer=str(item.get("friction_reducer", "none")),
             )
+            spec = FlowResearchSpec(
+                id=f"{role_id}::{index}::{len(proposals)}",
+                agent_role=role_label,
+                target_segment=segment,
+                user_state_hypothesis=str(item.get("user_state_hypothesis") or f"{segment.replace('_', ' ')} users need a more relevant rescue path."),
+                cancellation_moment_hypothesis=str(item.get("cancellation_moment_hypothesis") or "The user is leaving because the current cancellation screen does not address the real reason for churn."),
+                rescue_objective=str(item.get("rescue_objective") or str(item.get("thesis") or "")),
+                step_sequence=tuple(str(part) for part in item.get("step_sequence", []) if str(part).strip()) or (
+                    "Acknowledge the user intent.",
+                    "Offer the most relevant rescue path.",
+                    "Make the next action feel reversible and safe.",
+                ),
+                copy_blocks=tuple(str(part) for part in item.get("copy_blocks", []) if str(part).strip()) or (
+                    str(item.get("label") or "Save concept"),
+                    str(item.get("rationale") or "Model-generated rescue flow."),
+                ),
+                offer_logic=str(item.get("offer_logic") or str(item.get("offer") or "No offer.")),
+                cta_logic=str(item.get("cta_logic") or str(item.get("cta") or "Provide the clearest next step.")),
+                branch_logic=str(item.get("branch_logic") or "If the primary rescue fails, reveal a lower-friction fallback."),
+                trust_risks=tuple(str(part) for part in item.get("trust_risks", []) if str(part).strip()),
+                economic_risks=tuple(str(part) for part in item.get("economic_risks", []) if str(part).strip()),
+                evaluation_notes=tuple(str(part) for part in item.get("evaluation_notes", []) if str(part).strip()),
+                falsifiable_assumption=str(item.get("falsifiable_assumption") or ""),
+                confidence=float(item.get("confidence", 0.72)),
+            )
+            candidate, compile_notes = compile_flow_spec(
+                spec,
+                candidate_universe=list(allowed.values()),
+                settings=settings,
+                fallback_candidate=explicit_candidate,
+            )
             key = candidate_key(candidate)
-            if key not in allowed:
-                continue
-            segment = str(item.get("target_segment", "unknown"))
-            sample_persona = next((persona for persona in personas if persona.features.segment == segment), personas[0])
+            sample_persona = fallback_persona
             proposals.append(
-                IdeaProposal(
-                    id=f"{role_id}::{key}",
-                    agent_role=role_label,
+                _proposal_from_spec(
+                    proposal_id=f"{role_id}::{key}",
+                    role_label=role_label,
+                    spec=spec,
+                    candidate=candidate,
+                    compile_notes=compile_notes,
+                    settings=settings,
+                    sample_persona=sample_persona,
                     label=str(item.get("label") or candidate_label(candidate, offers=offers)),
                     thesis=str(item.get("thesis") or _idea_thesis(role_label, segment, candidate, settings)),
-                    rationale=str(item.get("rationale") or ""),
-                    target_segment=segment,
-                    confidence=float(item.get("confidence", 0.72)),
-                    candidate=candidate,
-                    sample_message=render_message(sample_persona, candidate, settings),
+                    rationale=str(item.get("rationale") or "Generated from an open-ended cancellation hypothesis."),
                 )
             )
         if progress_callback:
             progress = 0.48 + 0.14 * (index / total_roles)
-            progress_callback(progress, "ideation", f"{role_label} finished proposing ideas.")
+            progress_callback(progress, "ideation", f"{role_label} finished proposing and compiling ideas.")
 
     unique: dict[str, IdeaProposal] = {}
     for proposal in proposals:
