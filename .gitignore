@@ -7,3 +7,4 @@ __pycache__/
 results.tsv
 outputs/*.md
 outputs/*.json
+.vercel

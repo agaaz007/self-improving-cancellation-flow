@@ -57,8 +57,35 @@ _UI_ZEO = {
     "downgrade_basic":             {"header": "A lighter plan might work", "body": "Switch to a lighter plan and keep your route history.", "cta": "Switch to Basic", "offer_kind": "downgrade"},
     "discount_20":                 {"header": "We'd like to offer you a deal", "body": "Stay on track with a limited 20% discount on your next cycle.", "cta": "Claim 20% off", "offer_kind": "discount"},
     "discount_40":                 {"header": "We'd like to offer you a deal", "body": "High-savings offer available now if you continue your plan.", "cta": "Claim 40% off", "offer_kind": "discount"},
+    "discount_50":                 {"header": "We'd like to keep you", "body": "Here's our best offer — 50% off your next month. We really value having you.", "cta": "Claim 50% off", "offer_kind": "discount"},
+    "free_week":                   {"header": "Try one more week on us", "body": "Get a free week to experience our latest route improvements — no commitment.", "cta": "Get my free week", "offer_kind": "extension"},
+    "route_fix_commitment":        {"header": "We hear you — and we're fixing it", "body": "Our team is actively improving route accuracy. We'd love you to see the difference — here's a free week to try.", "cta": "Get my free week", "offer_kind": "extension"},
     "route_optimization_demo":     {"header": "Let us show you more", "body": "Let us show you how to get more value from route optimization.", "cta": "Show me how", "offer_kind": "support"},
     "fleet_rightsize":             {"header": "Let's adjust your plan", "body": "Right-size your plan to match your current fleet needs.", "cta": "Adjust my plan", "offer_kind": "credit"},
+}
+
+# ---------------------------------------------------------------------------
+# Reason-based flow routing — maps extracted cancel reason to the best action
+# Based on analysis of 85 Zeo cancel events:
+#   price (31%) → escalating discounts: 20% → 50% → free week
+#   webhook/silent (22%) → free week to re-engage
+#   generic (22%) → pause (low conviction, easy to save)
+#   route_quality (8%) → empathy + fix commitment + free week
+#   job_change (7%) → graceful exit (unsaveable life event)
+#   low_usage (7%) → downgrade or pause
+#   no_need (2%) → graceful exit
+#   billing (rare) → billing clarity
+# ---------------------------------------------------------------------------
+_REASON_TO_ACTION_ZEO = {
+    "price":             "discount_50",       # 31% of cancels — go straight to best offer
+    "webhook":           "free_week",          # 22% — silent churn, re-engage with free trial
+    "user_initiated":    "pause_plan",         # 22% — generic cancel, low friction pause
+    "low_usage":         "downgrade_basic",    # Use it less? Pay less.
+    "no_need":           "control_graceful_exit",  # Life event — let them go gracefully
+    "route_quality":     "route_fix_commitment",   # 8% — empathize, commit to fix, free week
+    "job_change":        "control_graceful_exit",  # 7% — unsaveable, graceful exit
+    "billing_confusion": "fleet_rightsize",        # Billing issue → clarify + adjust plan
+    "other":             "pause_plan",             # Default — soft pause offer
 }
 
 _UI_BY_CLIENT = {
@@ -166,11 +193,11 @@ def _personalize_ui(action_id: str, transcript: str, extraction: TranscriptExtra
 The system has already decided the best ACTION for this user: {action_id} ({fallback.get('header', '')})
 Offer type: {offer_kind}
 
-The optimizer found these are the best creative dimensions for this action:
-- message_angle: {strategy_dims.get('message_angle', 'contextual')}
-- proof_style: {strategy_dims.get('proof_style', 'none')}
-- personalization: {strategy_dims.get('personalization', 'contextual')}
-- contextual_grounding: {strategy_dims.get('contextual_grounding', 'generic')}
+Creative direction:
+- message_angle: {strategy_dims.get('message_angle', 'empathetic and direct')}
+- proof_style: {strategy_dims.get('proof_style', 'acknowledge their specific situation')}
+- personalization: {strategy_dims.get('personalization', 'contextual — reference their situation')}
+- contextual_grounding: {strategy_dims.get('contextual_grounding', 'their stated reason for leaving')}
 
 User's cancel reason: {extraction.primary_reason}
 User's frustration level: {extraction.frustration_level:.1f}/1.0
@@ -241,13 +268,52 @@ class handler(BaseHTTPRequestHandler):
         _init()
 
         personalize = str(body.get("personalize", "true")).lower() in ("true", "1", "yes")
+        use_bandit = str(body.get("use_bandit", "false")).lower() in ("true", "1", "yes")
 
-        # 1. Extract transcript features
-        extraction = _extractor.extract(transcript, metadata=metadata)
+        # 1. Extract transcript features (empty transcript = webhook/silent churn)
+        transcript_text = transcript if isinstance(transcript, str) else json.dumps(transcript)
+        if not transcript_text.strip():
+            extraction = TranscriptExtractionV1(
+                primary_reason="webhook",
+                frustration_level=0.0,
+                save_openness=0.3,
+                summary="No transcript — silent/webhook cancel",
+            )
+        else:
+            extraction = _extractor.extract(transcript, metadata=metadata)
 
-        # 2. Build context and run bandit
-        context = _build_context(user_id, extraction, metadata)
-        decision = _runtime.decide(context)
+        # 2. Pick the action — reason-based routing or bandit
+        if use_bandit:
+            # Bandit mode: Thompson sampling (requires trained policy)
+            context = _build_context(user_id, extraction, metadata)
+            decision = _runtime.decide(context)
+            action_id = decision.action_id
+            decision_id = decision.decision_id
+            exploration_flag = decision.exploration_flag
+            policy_version = decision.policy_version
+            routing_mode = "bandit"
+        else:
+            # Reason-based routing: direct mapping from cancel reason → best action
+            # This uses the flows designed from the 85-user Zeo cancel analysis
+            reason = extraction.primary_reason
+            action_id = _REASON_TO_ACTION_ZEO.get(reason, "pause_plan")
+
+            # Escalation logic for price: if they mention openness to cheaper,
+            # offer downgrade instead of max discount
+            if reason == "price" and extraction.save_openness > 0.5:
+                action_id = "discount_20"  # start lower, escalate if needed
+            elif reason == "price" and extraction.frustration_level > 0.6:
+                action_id = "discount_50"  # frustrated + price = go big
+
+            # For route quality: always empathize first
+            if reason == "quality_bug":
+                action_id = "route_fix_commitment"
+
+            from uuid import uuid4
+            decision_id = f"dec_{uuid4().hex[:12]}"
+            exploration_flag = False
+            policy_version = "reason_routing_v1"
+            routing_mode = "reason"
 
         # 3. Try LLM personalization, fall back to fixed UI
         personalized = False
@@ -255,25 +321,27 @@ class handler(BaseHTTPRequestHandler):
         ui = None
 
         if personalize:
-            strategy_dims = _best_strategy_dims(decision.action_id)
-            if strategy_dims:
-                ui = _personalize_ui(decision.action_id, transcript, extraction, strategy_dims)
-                if ui:
-                    personalized = True
+            strategy_dims = _best_strategy_dims(action_id) if use_bandit else None
+            ui = _personalize_ui(action_id, transcript, extraction, strategy_dims or {})
+            if ui:
+                personalized = True
 
         if ui is None:
-            ui = _action_to_ui(decision.action_id)
+            ui = _action_to_ui(action_id)
 
         self._respond(200, {
-            "decision_id": decision.decision_id,
-            "action_id": decision.action_id,
+            "decision_id": decision_id,
+            "action_id": action_id,
             "ui": ui,
             "meta": {
-                "policy_version": decision.policy_version,
-                "exploration_flag": decision.exploration_flag,
+                "policy_version": policy_version,
+                "exploration_flag": exploration_flag,
                 "primary_reason": extraction.primary_reason,
+                "frustration_level": round(extraction.frustration_level, 2),
+                "save_openness": round(extraction.save_openness, 2),
                 "client_id": _client_id,
                 "personalized": personalized,
+                "routing_mode": routing_mode,
                 "strategy_dims": strategy_dims,
             },
         })
