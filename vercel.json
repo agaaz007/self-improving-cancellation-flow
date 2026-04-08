@@ -1,8 +1,10 @@
 {
   "builds": [
-    {"src": "api/zeo_present_offers.py", "use": "@vercel/python"}
+    {"src": "api/zeo_present_offers.py", "use": "@vercel/python"},
+    {"src": "api/jungle_present_offers.py", "use": "@vercel/python"}
   ],
   "routes": [
-    {"src": "/api/zeo_present_offers", "dest": "/api/zeo_present_offers.py"}
+    {"src": "/api/zeo_present_offers", "dest": "/api/zeo_present_offers.py"},
+    {"src": "/api/jungle_present_offers", "dest": "/api/jungle_present_offers.py"}
   ]
 }
