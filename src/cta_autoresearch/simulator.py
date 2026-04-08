@@ -31,6 +31,7 @@ _llm_client: Any = None
 _llm_model: str = "gpt-4o-mini"
 _score_cache: dict[str, dict[str, float]] = {}
 _cache_path: Path | None = None
+_domain_context: str = "a learning app"
 
 
 def configure_scorer(
@@ -68,6 +69,12 @@ def persist_cache() -> None:
         _cache_path.write_text(json.dumps(_score_cache, indent=2))
 
 
+def configure_domain(context: str) -> None:
+    """Set the domain context string for LLM prompts."""
+    global _domain_context
+    _domain_context = context
+
+
 def reset_scorer() -> None:
     """Reset scorer to fallback mode and clear cache. Use in tests."""
     global _llm_client, _score_cache
@@ -98,7 +105,7 @@ def _persona_summary(persona: Persona) -> str:
     return (
         f"Segment: {f.segment}. Plan: {p.plan}, {p.billing_period}. "
         f"Tenure: {p.lifetime_days}d. Status: {p.status}. "
-        f"Dormancy: {p.dormancy_days}d. Study: {p.study_context}. "
+        f"Dormancy: {p.dormancy_days}d. Context: {p.study_context}. "
         f"Top features: {features_str}."
     )
 
@@ -117,7 +124,7 @@ def _candidate_summary(candidate: StrategyCandidate) -> str:
 
 
 _LLM_PROMPT = (
-    "You are scoring a cancellation save strategy for a specific user of a learning app.\n\n"
+    "You are scoring a cancellation save strategy for a specific user of {domain}.\n\n"
     "User: {persona}\n\n"
     "Strategy: {candidate}\n\n"
     "Score these three dimensions from 0.0 to 1.0:\n"
@@ -141,6 +148,7 @@ def _llm_score(persona: Persona, candidate: StrategyCandidate) -> dict[str, floa
     a single bad call doesn't crash the overnight run.
     """
     prompt = _LLM_PROMPT.format(
+        domain=_domain_context,
         persona=_persona_summary(persona),
         candidate=_candidate_summary(candidate),
     )

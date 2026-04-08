@@ -1,48 +1,32 @@
 {
   "status": "complete",
   "mode": "agent",
-  "iterations": 100,
+  "iterations": 1,
   "kept": 0,
-  "discarded": 100,
+  "discarded": 1,
   "crashed": 0,
-  "starting_save_rate": 0.7906,
-  "ending_save_rate": 0.8019,
-  "best_save_rate": 0.7906,
-  "total_save_lift": 0.0113,
-  "starting_reward": 0.7944,
-  "ending_reward": 0.8011,
-  "best_reward": 0.7944,
+  "starting_save_rate": 0.7869,
+  "ending_save_rate": 0.7762,
+  "best_save_rate": 0.7869,
+  "total_save_lift": -0.0108,
+  "starting_reward": 0.6765,
+  "ending_reward": 0.6845,
+  "best_reward": 0.6765,
   "mutation_breakdown": {
     "arm_priors": {
-      "attempted": 28,
-      "kept": 0
-    },
-    "context_arms": {
-      "attempted": 43,
-      "kept": 0
-    },
-    "discount_cap": {
       "attempted": 1,
-      "kept": 0
-    },
-    "exploration_rate": {
-      "attempted": 11,
-      "kept": 0
-    },
-    "reason_routing": {
-      "attempted": 17,
       "kept": 0
     }
   },
-  "alignment_score": 0.5792,
-  "trust_score": 0.7495,
+  "alignment_score": 0.1385,
+  "trust_score": 0.7738,
   "eval_mode": "simulator",
   "results_path": "optimizer_output/results.tsv",
   "holdout": {
-    "save_rate": 0.8066,
-    "composite_score": 0.804,
-    "n_users": 91
+    "save_rate": 0.8069,
+    "composite_score": 0.7516,
+    "n_users": 16
   },
-  "overfit_gap": -0.0047,
+  "overfit_gap": -0.0307,
   "overfit_warning": false
 }

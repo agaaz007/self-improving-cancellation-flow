@@ -64,10 +64,13 @@ from cta_autoresearch.user_model import (
     build_candidate_with_overrides,
     classify_user,
     default_candidate_strategies,
-    enriched_row_to_persona,
+    enriched_row_to_persona as _default_row_to_persona,
     simulator_eval,
 )
 from cta_autoresearch.strategy_policy import valid_candidate
+
+# Client-overridable row→persona adapter
+_row_to_persona = _default_row_to_persona
 
 
 # ── Strategy pool constants ───────────────────────────────────────────
@@ -214,6 +217,12 @@ AGENT_ROLES = [
         "preferred_personalization": ["contextual", "generic"],
     },
 ]
+
+
+def configure_agent_roles(roles: list[dict]) -> None:
+    """Override the module-level AGENT_ROLES list. Call at startup for per-client roles."""
+    global AGENT_ROLES
+    AGENT_ROLES = list(roles)
 
 
 def _build_agent_prompt(
@@ -819,6 +828,8 @@ def generate_synthetic_traffic(
     count: int = 200,
     seed: int = 42,
     save_probability: float = 0.45,
+    reasons: list[str] | None = None,
+    plans: list[str] | None = None,
 ) -> None:
     """Generate synthetic decide+outcome pairs to bootstrap the eval harness.
 
@@ -827,8 +838,8 @@ def generate_synthetic_traffic(
     optimizer has room to find improvements.
     """
     rng = random.Random(seed)
-    reasons = list(PRIMARY_REASONS)
-    plans = ["starter", "super_learner", "free"]
+    reasons = reasons or list(PRIMARY_REASONS)
+    plans = plans or ["starter", "super_learner", "free"]
 
     for i in range(count):
         reason = rng.choice(reasons)
@@ -1006,11 +1017,11 @@ class PolicyOptimizer:
 
         self._eval_cohort = train_rows
         self._eval_personas = [
-            enriched_row_to_persona(r, i) for i, r in enumerate(train_rows)
+            _row_to_persona(r, i) for i, r in enumerate(train_rows)
         ]
         self._holdout_cohort = holdout_rows
         self._holdout_personas = [
-            enriched_row_to_persona(r, i) for i, r in enumerate(holdout_rows)
+            _row_to_persona(r, i) for i, r in enumerate(holdout_rows)
         ]
 
     # ── Hierarchical action + strategy selection ──────────────────────
@@ -1032,7 +1043,7 @@ class PolicyOptimizer:
         rng = random.Random(user_seed ^ self.seed)
 
         # Level 1: Thompson Sample for action
-        best_action = "control_empathic_exit"
+        best_action = self.runtime.control_action_id
         best_draw = -1.0
 
         for action_id in self.runtime.actions:
@@ -1146,6 +1157,50 @@ class PolicyOptimizer:
                 return True
         return False
 
+    def _swarm_proposals(self) -> list[dict[str, str]]:
+        """Generate strategy proposals via LLM swarm ideation, falling back to heuristic.
+
+        Returns a list of dim dicts. LLM-sourced dicts carry a '_source': 'llm' marker
+        that _generation_round strips before storing.
+        """
+        from cta_autoresearch.swarm_ideation import generate_ideas
+        from cta_autoresearch.strategy_policy import all_candidates
+        from cta_autoresearch.research_settings import ResearchSettings, AGENT_ROLES as SWARM_ROLES
+
+        settings = ResearchSettings(
+            model_name=self.openai_model,
+            ideation_agents=len(SWARM_ROLES),  # 9 specialist agents
+            idea_proposals_per_agent=max(1, STRATEGIES_PER_GENERATION),
+            openai_reasoning_effort="medium",
+        )
+        candidate_universe = all_candidates(settings)
+        proposals, warnings = generate_ideas(self._eval_personas or [], candidate_universe, settings)
+
+        for w in warnings:
+            print(f"[swarm] {w}")
+
+        if proposals:
+            result = []
+            for p in proposals:
+                c = p.candidate
+                result.append({
+                    "message_angle": c.message_angle,
+                    "proof_style": c.proof_style,
+                    "personalization": c.personalization,
+                    "contextual_grounding": c.contextual_grounding,
+                    "creative_treatment": c.creative_treatment,
+                    "friction_reducer": c.friction_reducer,
+                    "_source": "llm",
+                })
+            return result
+
+        # Fallback: heuristic proposals across all actions
+        seen: list[dict[str, str]] = []
+        for action_id in self.runtime.actions:
+            for dims in self._propose_strategies_heuristic(action_id, STRATEGIES_PER_GENERATION):
+                seen.append(dims)
+        return seen
+
     def _propose_strategies_heuristic(
         self, action_id: str, count: int,
     ) -> list[dict[str, str]]:
@@ -1179,22 +1234,26 @@ class PolicyOptimizer:
         gen_meta = self.runtime.state.get("generation_meta", {})
         next_id = int(gen_meta.get("next_strategy_id", 1))
 
-        # 1. Generate new strategies for each action
+        # 1. Generate new strategies via LLM swarm (falls back to heuristic if no API key)
+        new_dims_list = self._swarm_proposals()
+        source = "llm_swarm" if new_dims_list and new_dims_list[0].get("_source") == "llm" else "heuristic"
         for action_id in list(pool.keys()):
-            new_strats = self._propose_strategies_heuristic(action_id, STRATEGIES_PER_GENERATION)
-            for dims in new_strats:
+            for dims in new_dims_list:
+                clean_dims = {k: v for k, v in dims.items() if not k.startswith("_")}
+                if self._is_duplicate(action_id, clean_dims):
+                    continue
                 sid = f"s{next_id}"
                 next_id += 1
                 pool[action_id][sid] = {
-                    "dims": dims,
+                    "dims": clean_dims,
                     "mean_score": 0.0,
                     "score_std": 0.0,
                     "n_evals": 0,
                     "generation": gen_meta.get("total_generations", 0) + 1,
-                    "source": "heuristic",
+                    "source": source,
                 }
                 strategy_arms[f"{action_id}:{sid}"] = {"alpha": 1.0, "beta": 1.0}
-                logs.append(f"generated {action_id}:{sid}")
+                logs.append(f"generated {action_id}:{sid} ({source})")
 
         # 2. Evaluate ALL strategies
         for action_id, strategies in pool.items():
@@ -1549,6 +1608,8 @@ class PolicyOptimizer:
                 count=bootstrap_traffic,
                 seed=bootstrap_seed,
                 save_probability=bootstrap_save_probability,
+                reasons=list(self.runtime.primary_reasons),
+                plans=self.runtime.plan_tiers,
             )
 
         # Configure LLM scorer and pre-warm cache
@@ -1736,10 +1797,42 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
 
+    # Load client configuration
+    from cta_autoresearch.clients import load_client
+    client = load_client()
+
+    # Apply client dimension catalogs, archetypes, and domain context
+    from cta_autoresearch.strategy_policy import configure_catalogs
+    from cta_autoresearch.simulator import configure_domain
+    from cta_autoresearch.user_model import (
+        configure_dimensions,
+        configure_archetypes,
+        configure_action_candidates,
+    )
+    configure_catalogs(client.DIMENSION_CATALOGS)
+    configure_dimensions(client.MUTABLE_DIMENSIONS)
+    configure_archetypes(client.ARCHETYPES)
+    configure_action_candidates(client.ACTION_TO_CANDIDATE)
+    configure_domain(client.LLM_DOMAIN_CONTEXT)
+    if hasattr(client, "AGENT_ROLES"):
+        configure_agent_roles(client.AGENT_ROLES)
+
+    # Set the row→persona adapter for this client
+    global _row_to_persona
+    _row_to_persona = client.row_to_persona
+
     data_dir = Path(args.data_dir)
     data_dir.mkdir(parents=True, exist_ok=True)
 
-    runtime = CancelPolicyRuntime(data_dir / "policy", seed=args.seed)
+    runtime = CancelPolicyRuntime(
+        data_dir / "policy",
+        seed=args.seed,
+        actions=client.ACTIONS,
+        primary_reasons=client.PRIMARY_REASONS,
+        reason_denylist=client.REASON_DENYLIST,
+        control_action_id=client.CONTROL_ACTION_ID,
+        plan_tiers=client.PLAN_TIERS,
+    )
 
     # Load state from previous phase (for phase compounding)
     # --load-state takes priority over --warm-start-file since it carries

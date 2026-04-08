@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Synthetic persona and CTA optimization lab for cancellation flows."
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = ["openai>=2.30.0"]
+dependencies = ["openai>=2.30.0", "fastapi>=0.115.0", "uvicorn[standard]>=0.32.0"]
 
 [project.scripts]
 cta-research = "cta_autoresearch.cli:main"
@@ -17,6 +17,7 @@ cta-research-lab = "cta_autoresearch.lab_cli:main"
 cta-harness = "cta_autoresearch.harness:main"
 cta-optimize = "cta_autoresearch.policy_optimizer:main"
 cta-user-model = "cta_autoresearch.user_model:main"
+cta-serve = "cta_autoresearch.server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

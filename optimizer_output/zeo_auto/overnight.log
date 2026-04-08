@@ -1,0 +1,50 @@
+=== Phase 1: Explore (30 iters) ===
+
+=== Phase 2: Fine-tuning (200 iters, intensity=1.5) ===
+[scorer] Loaded 14 cached scores from optimizer_output/zeo_auto/llm_score_cache.json
+---
+mode: agent
+starting_save_rate: 0.79
+ending_save_rate: 0.75
+best_save_rate: 0.79
+total_save_lift: -0.04
+starting_reward: 0.7448
+ending_reward: 0.8008
+alignment_score: 1.0
+trust_score: 0.8731
+eval_mode: simulator
+iterations: 30
+kept: 0
+discarded: 30
+  arm_priors: 0/22 kept
+  context_arms: 0/4 kept
+  reason_routing: 0/4 kept
+holdout_save_rate: 0.8031 (n=16)
+overfit_gap: -0.0531
+results: optimizer_output/zeo_auto/results.tsv
+summary: optimizer_output/zeo_auto/summary.json
+=== Phase 2: Tune (30 iters) ===
+Loaded state from optimizer_output/zeo_auto/policy_state_phase1.json (phase compounding).
+[scorer] Loaded 14 cached scores from optimizer_output/zeo_auto/llm_score_cache.json
+---
+mode: agent
+starting_save_rate: 0.74
+ending_save_rate: 0.7515
+best_save_rate: 0.7823
+total_save_lift: 0.0115
+starting_reward: 0.7286
+ending_reward: 0.8014
+alignment_score: 0.0615
+trust_score: 0.9169
+eval_mode: simulator
+iterations: 30
+kept: 11
+discarded: 19
+  arm_priors: 11/23 kept
+  context_arms: 0/3 kept
+  reason_routing: 0/4 kept
+holdout_save_rate: 0.7581 (n=16)
+overfit_gap: -0.0066
+results: optimizer_output/zeo_auto/results.tsv
+summary: optimizer_output/zeo_auto/summary.json
+=== Phase 3: Polish (15 iters) ===

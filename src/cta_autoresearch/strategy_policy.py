@@ -359,6 +359,44 @@ FRICTION_REDUCERS.update(
 )
 
 
+def configure_catalogs(catalogs: dict[str, dict]) -> None:
+    """Override module-level dimension catalogs with client-specific ones.
+
+    Expected keys: message_angles, proof_styles, base_offers, ctas,
+    personalization_levels, contextual_groundings, creative_treatments,
+    friction_reducers.
+    """
+    global MESSAGE_ANGLES, PROOF_STYLES, BASE_OFFERS, CTAS, OFFERS
+    global PERSONALIZATION_LEVELS, CONTEXTUAL_GROUNDINGS, CREATIVE_TREATMENTS, FRICTION_REDUCERS
+    if "message_angles" in catalogs:
+        MESSAGE_ANGLES.clear()
+        MESSAGE_ANGLES.update(catalogs["message_angles"])
+    if "proof_styles" in catalogs:
+        PROOF_STYLES.clear()
+        PROOF_STYLES.update(catalogs["proof_styles"])
+    if "base_offers" in catalogs:
+        BASE_OFFERS.clear()
+        BASE_OFFERS.update(catalogs["base_offers"])
+        OFFERS.clear()
+        OFFERS.update(BASE_OFFERS)
+    if "ctas" in catalogs:
+        CTAS.clear()
+        CTAS.update(catalogs["ctas"])
+    if "personalization_levels" in catalogs:
+        PERSONALIZATION_LEVELS.clear()
+        PERSONALIZATION_LEVELS.update(catalogs["personalization_levels"])
+    if "contextual_groundings" in catalogs:
+        CONTEXTUAL_GROUNDINGS.clear()
+        CONTEXTUAL_GROUNDINGS.update(catalogs["contextual_groundings"])
+    if "creative_treatments" in catalogs:
+        CREATIVE_TREATMENTS.clear()
+        CREATIVE_TREATMENTS.update(catalogs["creative_treatments"])
+    if "friction_reducers" in catalogs:
+        FRICTION_REDUCERS.clear()
+        FRICTION_REDUCERS.update(catalogs["friction_reducers"])
+    _cached_candidates.cache_clear()
+
+
 def _depth_value(settings: object | None) -> int:
     if settings is None:
         return 2
@@ -438,25 +476,30 @@ def candidate_key(candidate: StrategyCandidate) -> str:
 
 def candidate_label(candidate: StrategyCandidate, offers: dict[str, dict] | None = None) -> str:
     active_offers = offers or OFFERS
+    def _label(catalog: dict, key: str) -> str:
+        entry = catalog.get(key)
+        return entry["label"] if entry else key.replace("_", " ").title()
     return " + ".join(
         [
-            MESSAGE_ANGLES[candidate.message_angle]["label"],
-            PROOF_STYLES[candidate.proof_style]["label"],
-            active_offers[candidate.offer]["label"],
-            CTAS[candidate.cta]["label"],
-            PERSONALIZATION_LEVELS[candidate.personalization]["label"],
-            CONTEXTUAL_GROUNDINGS[candidate.contextual_grounding]["label"],
-            CREATIVE_TREATMENTS[candidate.creative_treatment]["label"],
-            FRICTION_REDUCERS[candidate.friction_reducer]["label"],
+            _label(MESSAGE_ANGLES, candidate.message_angle),
+            _label(PROOF_STYLES, candidate.proof_style),
+            _label(active_offers, candidate.offer),
+            _label(CTAS, candidate.cta),
+            _label(PERSONALIZATION_LEVELS, candidate.personalization),
+            _label(CONTEXTUAL_GROUNDINGS, candidate.contextual_grounding),
+            _label(CREATIVE_TREATMENTS, candidate.creative_treatment),
+            _label(FRICTION_REDUCERS, candidate.friction_reducer),
         ]
     )
 
 
 def _candidate_is_valid(candidate: StrategyCandidate, offers: dict[str, dict]) -> bool:
-    offer_meta = offers[candidate.offer]
-    cta_meta = CTAS[candidate.cta]
+    offer_meta = offers.get(candidate.offer)
+    cta_meta = CTAS.get(candidate.cta)
+    if offer_meta is None or cta_meta is None:
+        return False
 
-    if offer_meta["kind"] not in cta_meta["allowed_offer_kinds"]:
+    if offer_meta["kind"] not in cta_meta.get("allowed_offer_kinds", []):
         return False
     if offer_meta["kind"] == "none" and candidate.cta == "claim_offer":
         return False
@@ -496,37 +539,47 @@ def valid_candidate(candidate: StrategyCandidate, settings: object | None = None
 
 
 def _candidate_priority(candidate: StrategyCandidate, offers: dict[str, dict]) -> float:
+    def _val(catalog: dict, key: str, field: str, default: float = 0.0) -> float:
+        entry = catalog.get(key)
+        return float(entry[field]) if entry and field in entry else default
     return (
-        MESSAGE_ANGLES[candidate.message_angle]["specificity"]
-        + PERSONALIZATION_LEVELS[candidate.personalization]["intensity"]
-        + CONTEXTUAL_GROUNDINGS[candidate.contextual_grounding]["specificity"]
-        + CREATIVE_TREATMENTS[candidate.creative_treatment]["boldness"]
-        + FRICTION_REDUCERS[candidate.friction_reducer]["assist"]
+        _val(MESSAGE_ANGLES, candidate.message_angle, "specificity")
+        + _val(PERSONALIZATION_LEVELS, candidate.personalization, "intensity")
+        + _val(CONTEXTUAL_GROUNDINGS, candidate.contextual_grounding, "specificity")
+        + _val(CREATIVE_TREATMENTS, candidate.creative_treatment, "boldness")
+        + _val(FRICTION_REDUCERS, candidate.friction_reducer, "assist")
         + (0.08 if candidate.proof_style != "none" else 0.0)
-        - 0.12 * offers[candidate.offer]["generosity"]
+        - 0.12 * _val(offers, candidate.offer, "generosity")
     )
 
 
 def _default_candidate_for_offer(offer: str) -> StrategyCandidate:
     kind = BASE_OFFERS[offer]["kind"]
-    cta = {
-        "pause": "pause_instead",
-        "downgrade": "switch_to_lite",
-        "support": "talk_to_learning_support",
-        "discount": "claim_offer",
-        "credit": "claim_offer",
-        "billing": "see_plan_options",
-        "extension": "finish_current_goal",
-    }.get(kind, "stay_on_current_plan")
+    # Prefer kind-matched CTAs that exist in current catalog; fall back to first available
+    _cta_preference = {
+        "pause": ["pause_instead", "pause_plan"],
+        "downgrade": ["switch_to_lite", "downgrade_basic"],
+        "support": ["talk_to_learning_support", "talk_to_support"],
+        "discount": ["claim_offer"],
+        "credit": ["claim_offer"],
+        "billing": ["see_plan_options"],
+        "extension": ["finish_current_goal"],
+    }
+    cta = next(
+        (c for c in _cta_preference.get(kind, []) if c in CTAS),
+        next(iter(CTAS)),
+    )
+    message_angle = "progress_reflection" if "progress_reflection" in MESSAGE_ANGLES else next(iter(MESSAGE_ANGLES))
+    contextual_grounding = "study_goal" if "study_goal" in CONTEXTUAL_GROUNDINGS else next(iter(CONTEXTUAL_GROUNDINGS))
     return StrategyCandidate(
-        message_angle="progress_reflection",
-        proof_style="similar_user_story",
+        message_angle=message_angle,
+        proof_style="similar_user_story" if "similar_user_story" in PROOF_STYLES else next(iter(PROOF_STYLES)),
         offer=offer,
         cta=cta,
-        personalization="contextual",
-        contextual_grounding="study_goal",
-        creative_treatment="plain_note",
-        friction_reducer="none",
+        personalization="contextual" if "contextual" in PERSONALIZATION_LEVELS else next(iter(PERSONALIZATION_LEVELS)),
+        contextual_grounding=contextual_grounding,
+        creative_treatment="plain_note" if "plain_note" in CREATIVE_TREATMENTS else next(iter(CREATIVE_TREATMENTS)),
+        friction_reducer="none" if "none" in FRICTION_REDUCERS else next(iter(FRICTION_REDUCERS)),
     )
 
 
@@ -801,14 +854,14 @@ def render_message(persona: Persona, candidate: StrategyCandidate, settings: obj
     message = " ".join(
         part
         for part in [
-            openings[candidate.message_angle],
-            nuances[candidate.personalization],
-            groundings[candidate.contextual_grounding],
-            proofs[candidate.proof_style],
-            offers[candidate.offer],
-            treatments[candidate.creative_treatment],
-            reducers[candidate.friction_reducer],
-            ctas[candidate.cta],
+            openings.get(candidate.message_angle, f"We'd like to share something relevant to your experience with {context}."),
+            nuances.get(candidate.personalization, ""),
+            groundings.get(candidate.contextual_grounding, ""),
+            proofs.get(candidate.proof_style, ""),
+            offers.get(candidate.offer, ""),
+            treatments.get(candidate.creative_treatment, ""),
+            reducers.get(candidate.friction_reducer, ""),
+            ctas.get(candidate.cta, "CTA: Take the next step"),
         ]
         if part
     )

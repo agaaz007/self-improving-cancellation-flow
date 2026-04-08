@@ -562,9 +562,13 @@ class CancelPolicyRuntime:
         seed: int = 7,
         reason_denylist: dict[str, set[str]] | None = None,
         control_action_id: str = "control_empathic_exit",
+        primary_reasons: tuple[str, ...] | None = None,
+        plan_tiers: list[str] | None = None,
     ) -> None:
         self.root = Path(root)
         self.root.mkdir(parents=True, exist_ok=True)
+        self.primary_reasons = primary_reasons or PRIMARY_REASONS
+        self.plan_tiers = plan_tiers or ["free", "starter", "super_learner"]
         self.actions = dict(actions or DEFAULT_ACTIONS)
         if control_action_id not in self.actions:
             raise ValueError(f"control_action_id '{control_action_id}' must exist in actions")
@@ -576,7 +580,7 @@ class CancelPolicyRuntime:
         self.policy_version = policy_version
         self.seed = int(seed)
         self.reason_denylist = {
-            _normalize_reason(reason): set(values)
+            self._normalize_reason(reason): set(values)
             for reason, values in (reason_denylist or DEFAULT_REASON_DENYLIST).items()
         }
 
@@ -678,6 +682,12 @@ class CancelPolicyRuntime:
                 decision_id = str(record.get("decision_id") or "")
                 if decision_id:
                     self._outcome_by_decision[decision_id] = record
+
+    def _normalize_reason(self, value: Any) -> str:
+        reason = str(value or "").strip().lower().replace(" ", "_")
+        if reason in self.primary_reasons:
+            return reason
+        return "other"
 
     def _context_key(self, context: CancelContextV1, action_id: str) -> str:
         reason = context.transcript_extraction.primary_reason
@@ -881,7 +891,7 @@ class CancelPolicyRuntime:
         reward: float,
         saved_flag: bool,
     ) -> None:
-        context_reason = _normalize_reason(context_reason)
+        context_reason = self._normalize_reason(context_reason)
         context_key = f"{context_reason}|{plan_tier}|{action_id}"
         global_arm, context_arm = self._ensure_arm(action_id, context_key)
 
@@ -963,7 +973,7 @@ class CancelPolicyRuntime:
                 if action_id not in self.actions:
                     skipped += 1
                     continue
-                reason = _normalize_reason(row.get("primary_reason"))
+                reason = self._normalize_reason(row.get("primary_reason"))
                 plan_tier = str(row.get("plan_tier") or "unknown").strip().lower() or "unknown"
                 if "reward" in row:
                     reward = _as_float(row.get("reward"), 0.0)
@@ -1030,7 +1040,7 @@ class CancelPolicyRuntime:
             action_id = str(row.get("action_id") or "")
             if not action_id:
                 action_id = self.control_action_id
-            reason = _normalize_reason(row.get("primary_reason"))
+            reason = self._normalize_reason(row.get("primary_reason"))
 
             if "reward" in row:
                 reward = _as_float(row.get("reward"), 0.0)

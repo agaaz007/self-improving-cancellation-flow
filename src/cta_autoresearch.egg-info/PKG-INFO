@@ -4,6 +4,9 @@ Version: 0.1.0
 Summary: Synthetic persona and CTA optimization lab for cancellation flows.
 Requires-Python: >=3.10
 Description-Content-Type: text/markdown
+Requires-Dist: openai>=2.30.0
+Requires-Dist: fastapi>=0.115.0
+Requires-Dist: uvicorn[standard]>=0.32.0
 
 # CTA Autoresearch Lab
 
@@ -40,6 +43,51 @@ PYTHONPATH=src python3 -m cta_autoresearch.cli serve-dashboard --population 120 
 ```
 
 The dashboard evaluates the full search space offline, then loads a ranked working set into the browser so the UI stays responsive.
+
+## New swarm lab
+
+There is now a deeper lab path for the exact workflow you asked for:
+
+- multi-agent strategy ideation
+- richer persona dossiers
+- configurable validation budget
+- controllable search depth, persona richness, and ideation agent count
+- optional OpenAI-backed ideation model selection
+
+Run it with:
+
+```bash
+python3 -m pip install -e .
+PYTHONPATH=src python3 -m cta_autoresearch.lab_cli run-sample --population 120 --strategy-depth deep --persona-richness rich --ideation-agents 6 --validation-budget 240 --top-n 5
+PYTHONPATH=src python3 -m cta_autoresearch.lab_cli serve-dashboard --population 120 --strategy-depth deep --persona-richness rich --ideation-agents 6 --validation-budget 240 --port 8000
+```
+
+To enable OpenAI-backed ideation safely:
+
+```bash
+export OPENAI_API_KEY="your-new-key-here"
+PYTHONPATH=src python3 -m cta_autoresearch.lab_cli serve-dashboard --population 120 --strategy-depth deep --persona-richness rich --ideation-agents 6 --validation-budget 240 --model-name gpt-5.4-mini --port 8000
+```
+
+To force the hosted lab into API-driven research mode for both ideation and evaluation:
+
+```bash
+export OPENAI_API_KEY="your-new-key-here"
+PYTHONPATH=src python3 -m cta_autoresearch.lab_cli serve-dashboard --population 120 --strategy-depth quick --persona-richness rich --ideation-agents 6 --validation-budget 120 --execution-mode api_only --model-name gpt-5.4-mini --port 8000
+```
+
+Notes:
+
+- `execution_mode=hybrid` uses OpenAI for ideation and the local simulator for validation.
+- `execution_mode=api_only` routes both ideation and evaluation through OpenAI, with the dashboard/server staying hosted-safe via env vars.
+- Do not hardcode API keys into source files or commit them into the repository.
+
+Current backend truth:
+
+- Validation still runs through the local heuristic simulator.
+- The model selector changes ideation mode, not the core scoring math.
+- `heuristic-simulator` is the default active backend model today.
+- If you supply `OPENAI_API_KEY` and select `gpt-5.4-mini` or `gpt-5.4`, the lab can use OpenAI for idea generation while keeping validation local.
 
 ## How this maps to your idea
 

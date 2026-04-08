@@ -410,7 +410,11 @@ def classify_user(row: dict[str, Any]) -> UserDiagnosis:
 
 
 def _diagnosis(archetype_id: str, confidence: float, signals: list[str]) -> UserDiagnosis:
-    arch = ARCHETYPES[archetype_id]
+    arch = ARCHETYPES.get(archetype_id)
+    if arch is None:
+        # Archetype not in current client catalog — pick closest or first available
+        arch = next(iter(ARCHETYPES.values()))
+        archetype_id = next(iter(ARCHETYPES))
     return UserDiagnosis(
         archetype_id=archetype_id,
         archetype=arch,
@@ -580,6 +584,24 @@ MUTABLE_DIMENSIONS: dict[str, list[str]] = {
 }
 
 
+def configure_dimensions(dims: dict[str, list[str]]) -> None:
+    """Override MUTABLE_DIMENSIONS with client-specific dimension keys."""
+    MUTABLE_DIMENSIONS.clear()
+    MUTABLE_DIMENSIONS.update(dims)
+
+
+def configure_archetypes(archs: dict[str, Archetype]) -> None:
+    """Override ARCHETYPES with client-specific archetypes."""
+    ARCHETYPES.clear()
+    ARCHETYPES.update(archs)
+
+
+def configure_action_candidates(candidates: dict[str, StrategyCandidate]) -> None:
+    """Override ACTION_TO_CANDIDATE with client-specific action→strategy mapping."""
+    ACTION_TO_CANDIDATE.clear()
+    ACTION_TO_CANDIDATE.update(candidates)
+
+
 ACTION_TO_CANDIDATE: dict[str, StrategyCandidate] = {
     "pause_plan_relief": StrategyCandidate(
         message_angle="flexibility_relief",
@@ -678,7 +700,7 @@ def action_to_candidate(action_id: str) -> StrategyCandidate:
     """Map a cancel policy action_id to a StrategyCandidate for simulator scoring."""
     if action_id in ACTION_TO_CANDIDATE:
         return ACTION_TO_CANDIDATE[action_id]
-    return ACTION_TO_CANDIDATE["control_empathic_exit"]
+    return next(iter(ACTION_TO_CANDIDATE.values()))
 
 
 def default_candidate_strategies() -> dict[str, dict[str, str]]:
@@ -709,7 +731,8 @@ def build_candidate_with_overrides(
     The 6 presentation dimensions come from the strategies dict, falling
     back to ACTION_TO_CANDIDATE defaults.
     """
-    default = ACTION_TO_CANDIDATE.get(action_id, ACTION_TO_CANDIDATE["control_empathic_exit"])
+    # Fall back to the first action in the dict (client-specific control action)
+    default = ACTION_TO_CANDIDATE.get(action_id) or next(iter(ACTION_TO_CANDIDATE.values()))
 
     if not strategies or action_id not in strategies:
         return default

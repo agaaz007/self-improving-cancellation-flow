@@ -1,0 +1,40 @@
+{
+  "status": "complete",
+  "mode": "agent",
+  "iterations": 30,
+  "kept": 11,
+  "discarded": 19,
+  "crashed": 0,
+  "starting_save_rate": 0.74,
+  "ending_save_rate": 0.7515,
+  "best_save_rate": 0.7823,
+  "total_save_lift": 0.0115,
+  "starting_reward": 0.7286,
+  "ending_reward": 0.8014,
+  "best_reward": 0.7946,
+  "mutation_breakdown": {
+    "arm_priors": {
+      "attempted": 23,
+      "kept": 11
+    },
+    "context_arms": {
+      "attempted": 3,
+      "kept": 0
+    },
+    "reason_routing": {
+      "attempted": 4,
+      "kept": 0
+    }
+  },
+  "alignment_score": 0.0615,
+  "trust_score": 0.9169,
+  "eval_mode": "simulator",
+  "results_path": "optimizer_output/zeo_auto/results.tsv",
+  "holdout": {
+    "save_rate": 0.7581,
+    "composite_score": 0.7986,
+    "n_users": 16
+  },
+  "overfit_gap": -0.0066,
+  "overfit_warning": false
+}

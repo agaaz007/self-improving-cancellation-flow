@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Bandit Monitor</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a26;--border:#2a2a3a;
+  --text:#e0e0e8;--text2:#8888a0;--accent:#6366f1;--green:#22c55e;
+  --red:#ef4444;--amber:#f59e0b;--cyan:#06b6d4;
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',system-ui,sans-serif;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.5;font-size:14px}
+a{color:var(--accent);text-decoration:none}
+.shell{max-width:1400px;margin:0 auto;padding:16px 20px}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 0 20px;border-bottom:1px solid var(--border)}
+header h1{font-size:18px;font-weight:600;letter-spacing:-0.02em}
+header .meta{font-family:var(--mono);font-size:12px;color:var(--text2)}
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.status-dot.ok{background:var(--green)}.status-dot.warn{background:var(--amber)}.status-dot.err{background:var(--red)}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:20px 0}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px}
+.kpi .label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px}
+.kpi .value{font-family:var(--mono);font-size:28px;font-weight:600}
+.kpi .sub{font-family:var(--mono);font-size:11px;color:var(--text2);margin-top:2px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px}
+.panel h2{font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:500;color:var(--text2);padding:8px 10px;border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:0.04em}
+td{padding:7px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:12px}
+tr:hover td{background:var(--surface2)}
+.bar-cell{position:relative;min-width:120px}
+.bar{height:18px;border-radius:3px;position:relative;min-width:2px}
+.bar.action{background:var(--accent)}
+.bar.green{background:var(--green)}
+.bar.amber{background:var(--amber)}
+.bar.red{background:var(--red)}
+.bar.cyan{background:var(--cyan)}
+.bar-label{position:absolute;right:4px;top:1px;font-size:10px;font-family:var(--mono);color:var(--bg);font-weight:600}
+.ci-bar{display:flex;align-items:center;height:14px;position:relative;min-width:120px}
+.ci-range{height:4px;background:var(--accent);opacity:0.3;position:absolute;border-radius:2px}
+.ci-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);position:absolute;z-index:1}
+.tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:11px;font-family:var(--mono);background:var(--surface2);color:var(--text2)}
+.tag.explore{background:#6366f120;color:var(--accent)}
+.tag.exploit{background:#22c55e20;color:var(--green)}
+.tag.holdout{background:#f59e0b20;color:var(--amber)}
+.heatmap-grid{display:grid;gap:2px}
+.heatmap-cell{padding:4px;text-align:center;font-family:var(--mono);font-size:10px;border-radius:3px;cursor:default}
+.heatmap-cell:hover{outline:1px solid var(--accent)}
+.strat-dims{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.strat-dim{font-size:10px;padding:1px 5px;border-radius:3px;background:var(--surface2);color:var(--text2);font-family:var(--mono)}
+.feed{max-height:300px;overflow-y:auto;font-family:var(--mono);font-size:11px}
+.feed-row{padding:5px 8px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center}
+.feed-row:hover{background:var(--surface2)}
+.feed-time{color:var(--text2);min-width:60px}
+.refresh-bar{display:flex;align-items:center;gap:12px;padding:8px 0}
+.refresh-bar select,.refresh-bar button{font-family:var(--mono);font-size:12px;padding:4px 8px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer}
+.refresh-bar button:hover{border-color:var(--accent)}
+.pulse{animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.section-label{font-size:12px;color:var(--text2);margin:20px 0 8px;text-transform:uppercase;letter-spacing:0.05em;font-weight:600}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div>
+      <h1><span class="status-dot ok" id="status-dot"></span>Bandit Monitor</h1>
+    </div>
+    <div class="meta">
+      <span id="policy-version">--</span> &middot;
+      <span id="last-reload">--</span> &middot;
+      <span id="uptime">--</span>
+    </div>
+  </header>
+
+  <div class="refresh-bar">
+    <span style="color:var(--text2);font-size:12px">Auto-refresh:</span>
+    <select id="refresh-interval">
+      <option value="0">Off</option>
+      <option value="5000">5s</option>
+      <option value="10000" selected>10s</option>
+      <option value="30000">30s</option>
+      <option value="60000">60s</option>
+    </select>
+    <button onclick="refreshAll()">Refresh now</button>
+    <span id="last-fetch" style="color:var(--text2);font-size:11px;font-family:var(--mono)">--</span>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row" id="kpi-row"></div>
+
+  <!-- Arms leaderboard + CI plot -->
+  <div class="section-label">Action Arms</div>
+  <div class="grid-2">
+    <div class="panel">
+      <h2>Arm Performance</h2>
+      <table>
+        <thead><tr><th>Action</th><th>Mean</th><th>95% CI</th><th>Impressions</th><th>Win Rate</th></tr></thead>
+        <tbody id="arms-body"></tbody>
+      </table>
+    </div>
+    <div class="panel">
+      <h2>Replay: Save Rate by Action</h2>
+      <table>
+        <thead><tr><th>Action</th><th>Save Rate</th><th>Avg Reward</th><th>N</th></tr></thead>
+        <tbody id="replay-action-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Context arms heatmap -->
+  <div class="section-label">Context Arms Heatmap</div>
+  <div class="panel">
+    <h2>Reason x Action &mdash; Posterior Mean</h2>
+    <div style="overflow-x:auto" id="heatmap-container"></div>
+  </div>
+
+  <!-- Replay by reason -->
+  <div class="section-label">Performance by Reason</div>
+  <div class="grid-2">
+    <div class="panel">
+      <h2>Save Rate by Reason</h2>
+      <table>
+        <thead><tr><th>Reason</th><th>Save Rate</th><th>Avg Reward</th><th>N</th></tr></thead>
+        <tbody id="replay-reason-body"></tbody>
+      </table>
+    </div>
+    <div class="panel">
+      <h2>Strategy Pool</h2>
+      <div id="strategy-pool"></div>
+    </div>
+  </div>
+
+  <!-- Generation meta + config -->
+  <div class="section-label">Optimizer State</div>
+  <div class="grid-3">
+    <div class="panel">
+      <h2>Generation Meta</h2>
+      <div id="gen-meta"></div>
+    </div>
+    <div class="panel">
+      <h2>Config</h2>
+      <div id="config-panel"></div>
+    </div>
+    <div class="panel">
+      <h2>Latency</h2>
+      <div id="latency-panel"></div>
+    </div>
+  </div>
+
+  <!-- Recent activity feed -->
+  <div class="section-label">Recent Activity</div>
+  <div class="grid-2">
+    <div class="panel">
+      <h2>Recent Decisions</h2>
+      <div class="feed" id="decisions-feed"></div>
+    </div>
+    <div class="panel">
+      <h2>Recent Outcomes</h2>
+      <div class="feed" id="outcomes-feed"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = window.location.origin;
+let refreshTimer = null;
+
+function fmt(n, d=4){ return typeof n==='number' ? n.toFixed(d) : '--' }
+function pct(n){ return typeof n==='number' ? (n*100).toFixed(1)+'%' : '--' }
+function ts(t){ if(!t)return '--'; const d=new Date(t*1000); return d.toLocaleTimeString() }
+function ago(t){ if(!t)return '--'; const s=Math.floor(Date.now()/1000-t); if(s<60)return s+'s ago'; if(s<3600)return Math.floor(s/60)+'m ago'; return Math.floor(s/3600)+'h ago' }
+
+function heatColor(mean){
+  if(mean>=0.7) return '#22c55e';
+  if(mean>=0.5) return '#6366f1';
+  if(mean>=0.3) return '#f59e0b';
+  return '#ef4444';
+}
+
+async function fetchJSON(path){
+  try{ const r=await fetch(API+path); return await r.json(); }
+  catch(e){ console.error(path,e); return null; }
+}
+
+async function refreshAll(){
+  const [health,arms,replay,strategies,gen,decisions,outcomes,ctxArms] = await Promise.all([
+    fetchJSON('/health'),
+    fetchJSON('/api/arms'),
+    fetchJSON('/api/replay'),
+    fetchJSON('/api/strategies'),
+    fetchJSON('/api/generation'),
+    fetchJSON('/api/recent-decisions'),
+    fetchJSON('/api/recent-outcomes'),
+    fetchJSON('/api/context-arms'),
+  ]);
+  document.getElementById('last-fetch').textContent = 'fetched '+new Date().toLocaleTimeString();
+
+  if(health) renderHealth(health);
+  if(arms) renderArms(arms);
+  if(replay) renderReplay(replay);
+  if(strategies) renderStrategies(strategies);
+  if(gen) renderGeneration(gen);
+  if(decisions) renderDecisions(decisions);
+  if(outcomes) renderOutcomes(outcomes);
+  if(ctxArms) renderHeatmap(ctxArms);
+}
+
+function renderHealth(h){
+  const dot=document.getElementById('status-dot');
+  dot.className='status-dot '+(h.status==='ok'?'ok':'err');
+  document.getElementById('policy-version').textContent='Policy '+h.policy_version;
+  document.getElementById('last-reload').textContent='Reloaded '+ago(h.last_reload);
+
+  const kpis=[
+    {label:'Decisions',value:h.decisions,sub:'total served'},
+    {label:'Outcomes',value:h.outcomes,sub:'recorded'},
+    {label:'Save Rate',value:h.outcomes>0?pct(h.outcomes>0?(h.decisions-h.fallbacks)/h.decisions:0):'--',sub:'non-fallback'},
+    {label:'Exploration',value:pct(h.exploration_rate),sub:'random exploration'},
+    {label:'Holdout',value:pct(h.holdout_rate),sub:'control group'},
+    {label:'Fallbacks',value:h.fallbacks,sub:'all-blocked'},
+    {label:'Blocked',value:h.blocked_actions_total,sub:'total blocks'},
+    {label:'Actions',value:h.actions,sub:'available'},
+  ];
+  document.getElementById('kpi-row').innerHTML=kpis.map(k=>`
+    <div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>
+  `).join('');
+
+  // Latency
+  const lat=h.latency||{};
+  document.getElementById('latency-panel').innerHTML=Object.entries(lat).map(([k,v])=>`
+    <div style="margin-bottom:8px"><span style="color:var(--text2);font-size:12px">${k}</span><br>
+    <span style="font-family:var(--mono);font-size:13px">p95: ${v.p95_ms}ms &middot; avg: ${v.avg_ms}ms</span></div>
+  `).join('')||'<span style="color:var(--text2)">No data</span>';
+}
+
+function renderArms(arms){
+  const sorted=Object.entries(arms).sort((a,b)=>b[1].mean-a[1].mean);
+  const maxImp=Math.max(...sorted.map(([,a])=>a.impressions),1);
+  document.getElementById('arms-body').innerHTML=sorted.map(([id,a])=>{
+    const ciW=120;
+    const low=Math.round(a.ci_low*ciW);
+    const high=Math.round(a.ci_high*ciW);
+    const dot=Math.round(a.mean*ciW);
+    return `<tr>
+      <td style="font-family:var(--sans);font-weight:500">${a.label}</td>
+      <td>${pct(a.mean)}</td>
+      <td><div class="ci-bar" style="width:${ciW}px">
+        <div class="ci-range" style="left:${low}px;width:${high-low}px"></div>
+        <div class="ci-dot" style="left:${dot-4}px"></div>
+      </div></td>
+      <td>${a.impressions}</td>
+      <td>${pct(a.win_rate)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderReplay(r){
+  if(!r||!r.by_action) return;
+  const actions=Object.entries(r.by_action).sort((a,b)=>b[1].save_rate-a[1].save_rate);
+  document.getElementById('replay-action-body').innerHTML=actions.map(([id,a])=>{
+    const w=Math.round(a.save_rate*100);
+    const color=a.save_rate>=0.6?'green':a.save_rate>=0.4?'amber':'red';
+    return `<tr>
+      <td style="font-family:var(--sans)">${id.replace(/_/g,' ')}</td>
+      <td><div class="bar-cell"><div class="bar ${color}" style="width:${w}%"><span class="bar-label">${pct(a.save_rate)}</span></div></div></td>
+      <td>${fmt(a.average_reward,3)}</td>
+      <td>${a.rows}</td>
+    </tr>`;
+  }).join('');
+
+  const reasons=Object.entries(r.by_reason).sort((a,b)=>b[1].save_rate-a[1].save_rate);
+  document.getElementById('replay-reason-body').innerHTML=reasons.map(([id,a])=>{
+    const w=Math.round(a.save_rate*100);
+    const color=a.save_rate>=0.6?'green':a.save_rate>=0.4?'cyan':'red';
+    return `<tr>
+      <td style="font-family:var(--sans)">${id}</td>
+      <td><div class="bar-cell"><div class="bar ${color}" style="width:${w}%"><span class="bar-label">${pct(a.save_rate)}</span></div></div></td>
+      <td>${fmt(a.average_reward,3)}</td>
+      <td>${a.rows}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderHeatmap(ctxArms){
+  // Parse keys: reason|plan|action -> group by reason x action, aggregate across plans
+  const reasons=new Set(), actions=new Set();
+  const cells={};
+  for(const [key,arm] of Object.entries(ctxArms)){
+    const parts=key.split('|');
+    if(parts.length!==3) continue;
+    const [reason,plan,action]=parts;
+    reasons.add(reason); actions.add(action);
+    const cellKey=reason+'|'+action;
+    if(!cells[cellKey]) cells[cellKey]={alpha:0,beta:0,n:0};
+    cells[cellKey].alpha+=arm.alpha;
+    cells[cellKey].beta+=arm.beta;
+    cells[cellKey].n+=arm.impressions;
+  }
+  const rList=[...reasons].sort(), aList=[...actions].sort();
+  const cols=aList.length+1;
+  let html=`<div class="heatmap-grid" style="grid-template-columns:100px repeat(${aList.length},1fr)">`;
+  // Header
+  html+=`<div class="heatmap-cell" style="font-weight:600"></div>`;
+  for(const a of aList) html+=`<div class="heatmap-cell" style="font-weight:500;font-size:9px;color:var(--text2)">${a.replace(/_/g,' ').slice(0,16)}</div>`;
+  // Rows
+  for(const r of rList){
+    html+=`<div class="heatmap-cell" style="text-align:right;font-weight:500;font-size:11px;color:var(--text)">${r}</div>`;
+    for(const a of aList){
+      const c=cells[r+'|'+a];
+      if(!c||c.n===0){
+        html+=`<div class="heatmap-cell" style="background:var(--surface2);color:var(--text2)">-</div>`;
+      } else {
+        const mean=c.alpha/(c.alpha+c.beta);
+        const bg=heatColor(mean);
+        html+=`<div class="heatmap-cell" style="background:${bg}20;color:${bg};font-weight:500" title="${r}|${a}: mean=${mean.toFixed(3)}, n=${c.n}">${mean.toFixed(2)}</div>`;
+      }
+    }
+  }
+  html+=`</div>`;
+  document.getElementById('heatmap-container').innerHTML=html;
+}
+
+function renderStrategies(pool){
+  let html='';
+  const sorted=Object.entries(pool).sort((a,b)=>{
+    const aMax=Math.max(...a[1].map(s=>s.mean_score),0);
+    const bMax=Math.max(...b[1].map(s=>s.mean_score),0);
+    return bMax-aMax;
+  });
+  for(const [action,strats] of sorted){
+    html+=`<div style="margin-bottom:14px"><div style="font-weight:600;font-size:13px;margin-bottom:6px">${action.replace(/_/g,' ')}</div>`;
+    html+=`<table><thead><tr><th>ID</th><th>Score</th><th>Arm</th><th>Gen</th><th>Dims</th></tr></thead><tbody>`;
+    for(const s of strats.slice(0,3)){
+      const dims=Object.entries(s.dims||{}).map(([k,v])=>`<span class="strat-dim">${k.slice(0,8)}:${v.slice(0,12)}</span>`).join('');
+      html+=`<tr><td>${s.id}</td><td>${pct(s.mean_score)}</td><td>${pct(s.arm_mean)}</td><td>${s.generation}</td><td>${dims}</td></tr>`;
+    }
+    html+=`</tbody></table></div>`;
+  }
+  document.getElementById('strategy-pool').innerHTML=html;
+}
+
+function renderGeneration(g){
+  const meta=g.generation_meta||{};
+  const config=g.config||{};
+  document.getElementById('gen-meta').innerHTML=`
+    <table>
+      <tr><td style="color:var(--text2)">Total generations</td><td>${meta.total_generations||0}</td></tr>
+      <tr><td style="color:var(--text2)">Last generation</td><td>${meta.last_generation||0}</td></tr>
+      <tr><td style="color:var(--text2)">Stagnation</td><td>${meta.stagnation_count||0} / ${meta.stagnation_threshold||5}</td></tr>
+      <tr><td style="color:var(--text2)">Next strategy ID</td><td>${meta.next_strategy_id||0}</td></tr>
+      <tr><td style="color:var(--text2)">Updated</td><td>${ago(g.updated_at)}</td></tr>
+    </table>
+  `;
+  document.getElementById('config-panel').innerHTML=`
+    <table>
+      ${Object.entries(config).map(([k,v])=>`<tr><td style="color:var(--text2)">${k}</td><td>${v}</td></tr>`).join('')}
+    </table>
+  `;
+}
+
+function renderDecisions(list){
+  const feed=document.getElementById('decisions-feed');
+  if(!list||!list.length){feed.innerHTML='<div style="color:var(--text2);padding:12px">No decisions yet</div>';return}
+  feed.innerHTML=list.slice(0,30).map(d=>{
+    const tag=d.exploration_flag?'<span class="tag explore">explore</span>':
+              d.holdout_flag?'<span class="tag holdout">holdout</span>':
+              '<span class="tag exploit">exploit</span>';
+    return `<div class="feed-row">
+      <span class="feed-time">${ts(d.timestamp)}</span>
+      <span>${(d.action_id||'').replace(/_/g,' ')}</span>
+      ${tag}
+      <span style="color:var(--text2)">${d.primary_reason||''} &middot; ${d.plan_tier||''}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderOutcomes(list){
+  const feed=document.getElementById('outcomes-feed');
+  if(!list||!list.length){feed.innerHTML='<div style="color:var(--text2);padding:12px">No outcomes yet</div>';return}
+  feed.innerHTML=list.slice(0,30).map(o=>{
+    const saved=o.saved_flag;
+    const icon=saved?'<span style="color:var(--green)">saved</span>':'<span style="color:var(--red)">lost</span>';
+    const flags=[];
+    if(o.support_escalation_flag) flags.push('escalation');
+    if(o.complaint_flag) flags.push('complaint');
+    return `<div class="feed-row">
+      <span class="feed-time">${ts(o.outcome_timestamp)}</span>
+      ${icon}
+      <span>${(o.action_id||'').replace(/_/g,' ')}</span>
+      <span style="color:var(--text2)">r=${fmt(o.reward,2)}</span>
+      ${flags.length?`<span style="color:var(--amber);font-size:10px">${flags.join(', ')}</span>`:''}
+    </div>`;
+  }).join('');
+}
+
+// Refresh loop
+function startRefresh(){
+  clearInterval(refreshTimer);
+  const ms=parseInt(document.getElementById('refresh-interval').value);
+  if(ms>0) refreshTimer=setInterval(refreshAll,ms);
+}
+document.getElementById('refresh-interval').addEventListener('change',startRefresh);
+
+// Boot
+refreshAll();
+startRefresh();
+</script>
+</body>
+</html>

@@ -1,0 +1,2274 @@
+{
+  "rows": [
+    {
+      "primary_reason": "webhook",
+      "plan_tier": "annual",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_127"
+        ]
+      },
+      "num_sessions": 127,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2023-04-03",
+      "last_used": "2026-03-24",
+      "payment_interval": "year",
+      "revenue": 0.0,
+      "cancel_reason": "by webhook",
+      "cancel_note": "by webhook"
+    },
+    {
+      "primary_reason": "webhook",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_1135"
+        ]
+      },
+      "num_sessions": 1135,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2023-07-12",
+      "last_used": "2026-04-06",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "by webhook",
+      "cancel_note": "by webhook"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_44"
+        ]
+      },
+      "num_sessions": 44,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2024-02-15",
+      "last_used": "2026-04-07",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "It's too expensive",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "user_initiated",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_2637"
+        ]
+      },
+      "num_sessions": 2637,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2024-03-05",
+      "last_used": "2026-03-31",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "route_quality",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.7,
+        "trust_risk": 0.4,
+        "save_openness": 0.4,
+        "churn_risk_score": 0.63,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_45"
+        ]
+      },
+      "num_sessions": 45,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2024-04-23",
+      "last_used": "2026-04-07",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "Routes were not proper",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "webhook",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_4"
+        ]
+      },
+      "num_sessions": 4,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2024-04-29",
+      "last_used": "2026-04-07",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "by webhook",
+      "cancel_note": "by webhook"
+    },
+    {
+      "primary_reason": "user_initiated",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_47"
+        ]
+      },
+      "num_sessions": 47,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2024-05-14",
+      "last_used": "2026-04-06",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "user_initiated",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_2301"
+        ]
+      },
+      "num_sessions": 2301,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2024-05-23",
+      "last_used": "2026-03-22",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "Other@@ Munkahely v\u00e1lt\u00e1s, nincs m\u00e1r r\u00e1 sz\u00fcks\u00e9gem"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_3"
+        ]
+      },
+      "num_sessions": 3,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2024-06-17",
+      "last_used": "2026-04-02",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "It's too expensive",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "webhook",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_1792"
+        ]
+      },
+      "num_sessions": 1792,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2024-07-02",
+      "last_used": "2026-04-07",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "by webhook",
+      "cancel_note": "by webhook"
+    },
+    {
+      "primary_reason": "job_change",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.1,
+        "churn_risk_score": 0.57,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_0"
+        ]
+      },
+      "num_sessions": 0,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "",
+      "last_used": "",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "Changed Job",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "user_initiated",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_1730"
+        ]
+      },
+      "num_sessions": 1730,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-03-17",
+      "last_used": "2026-04-04",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_80"
+        ]
+      },
+      "num_sessions": 80,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-03-30",
+      "last_used": "2026-04-05",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "Cost-related reasons"
+    },
+    {
+      "primary_reason": "low_usage",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.5,
+        "churn_risk_score": 0.49,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_1262"
+        ]
+      },
+      "num_sessions": 1262,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-05-27",
+      "last_used": "2026-04-06",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "I don't use this service enough"
+    },
+    {
+      "primary_reason": "webhook",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_2172"
+        ]
+      },
+      "num_sessions": 2172,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-06-10",
+      "last_used": "2026-04-06",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "by webhook",
+      "cancel_note": "by webhook"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_159"
+        ]
+      },
+      "num_sessions": 159,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-06-19",
+      "last_used": "2026-04-05",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "It's too expensive",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "webhook",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_54"
+        ]
+      },
+      "num_sessions": 54,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-06-25",
+      "last_used": "2026-03-17",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "by webhook",
+      "cancel_note": "by webhook"
+    },
+    {
+      "primary_reason": "user_initiated",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_78"
+        ]
+      },
+      "num_sessions": 78,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-07-23",
+      "last_used": "2026-03-31",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "user_initiated",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_5411"
+        ]
+      },
+      "num_sessions": 5411,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2022-05-08",
+      "last_used": "2026-04-02",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "other",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.4,
+        "churn_risk_score": 0.51,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_52"
+        ]
+      },
+      "num_sessions": 52,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-08-23",
+      "last_used": "2026-03-27",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "We don\u2019t need route planner",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "low_usage",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.5,
+        "churn_risk_score": 0.49,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_274"
+        ]
+      },
+      "num_sessions": 274,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-08-23",
+      "last_used": "2026-03-27",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "I don't use this service enough"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_164"
+        ]
+      },
+      "num_sessions": 164,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-08-26",
+      "last_used": "2026-03-13",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "It's too expensive",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_83"
+        ]
+      },
+      "num_sessions": 83,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-08-28",
+      "last_used": "2026-04-01",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "It's too expensive",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "webhook",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_242"
+        ]
+      },
+      "num_sessions": 242,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-08-29",
+      "last_used": "2026-04-07",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "by webhook",
+      "cancel_note": "by webhook"
+    },
+    {
+      "primary_reason": "user_initiated",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_27"
+        ]
+      },
+      "num_sessions": 27,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-09-07",
+      "last_used": "2026-04-04",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "low_usage",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.5,
+        "churn_risk_score": 0.49,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_52"
+        ]
+      },
+      "num_sessions": 52,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-09-22",
+      "last_used": "2026-03-31",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "My reason not listed",
+      "cancel_note": "you don't need it every single day only needed it occasionally"
+    },
+    {
+      "primary_reason": "user_initiated",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_469"
+        ]
+      },
+      "num_sessions": 469,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-10-06",
+      "last_used": "2026-03-31",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "webhook",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_27"
+        ]
+      },
+      "num_sessions": 27,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-10-16",
+      "last_used": "2026-03-16",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "by webhook",
+      "cancel_note": "by webhook"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_44"
+        ]
+      },
+      "num_sessions": 44,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-10-27",
+      "last_used": "2026-04-07",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "It's too expensive",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_319"
+        ]
+      },
+      "num_sessions": 319,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-11-02",
+      "last_used": "2026-04-07",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "It's too expensive",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "webhook",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_419"
+        ]
+      },
+      "num_sessions": 419,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-11-18",
+      "last_used": "2026-04-07",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "by webhook",
+      "cancel_note": "by webhook"
+    },
+    {
+      "primary_reason": "webhook",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_501"
+        ]
+      },
+      "num_sessions": 501,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-12-01",
+      "last_used": "2026-03-18",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "by webhook",
+      "cancel_note": "by webhook"
+    },
+    {
+      "primary_reason": "webhook",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_42"
+        ]
+      },
+      "num_sessions": 42,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-12-05",
+      "last_used": "2026-03-27",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "by webhook",
+      "cancel_note": "by webhook"
+    },
+    {
+      "primary_reason": "low_usage",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.5,
+        "churn_risk_score": 0.49,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_11"
+        ]
+      },
+      "num_sessions": 11,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-12-08",
+      "last_used": "2026-03-08",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "I don't use this service enough"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "annual",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_18268"
+        ]
+      },
+      "num_sessions": 18268,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2022-03-02",
+      "last_used": "2026-04-07",
+      "payment_interval": "year",
+      "revenue": 0.0,
+      "cancel_reason": "It's too expensive",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_406"
+        ]
+      },
+      "num_sessions": 406,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-12-16",
+      "last_used": "2026-04-07",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "It's too expensive",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_164"
+        ]
+      },
+      "num_sessions": 164,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2025-12-16",
+      "last_used": "2026-04-06",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "It's too expensive",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "webhook",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_0"
+        ]
+      },
+      "num_sessions": 0,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "",
+      "last_used": "",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "by webhook",
+      "cancel_note": "by webhook"
+    },
+    {
+      "primary_reason": "user_initiated",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_137"
+        ]
+      },
+      "num_sessions": 137,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-01-20",
+      "last_used": "2026-03-23",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "other",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.4,
+        "churn_risk_score": 0.51,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_8"
+        ]
+      },
+      "num_sessions": 8,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-01-30",
+      "last_used": "2026-03-13",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "We don\u2019t need route planner",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "user_initiated",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_401"
+        ]
+      },
+      "num_sessions": 401,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-02-03",
+      "last_used": "2026-04-01",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "job_change",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.1,
+        "churn_risk_score": 0.57,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_18"
+        ]
+      },
+      "num_sessions": 18,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-02-07",
+      "last_used": "2026-04-03",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "Changed Job",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_30"
+        ]
+      },
+      "num_sessions": 30,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-02-09",
+      "last_used": "2026-03-13",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "Cost-related reasons"
+    },
+    {
+      "primary_reason": "webhook",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_88"
+        ]
+      },
+      "num_sessions": 88,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-02-20",
+      "last_used": "2026-03-20",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "by webhook",
+      "cancel_note": "by webhook"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_117"
+        ]
+      },
+      "num_sessions": 117,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-02-20",
+      "last_used": "2026-03-24",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "It's too expensive",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_24"
+        ]
+      },
+      "num_sessions": 24,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-02-22",
+      "last_used": "2026-03-13",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "Cost-related reasons"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_53"
+        ]
+      },
+      "num_sessions": 53,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-02-26",
+      "last_used": "2026-03-21",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "Cost-related reasons"
+    },
+    {
+      "primary_reason": "webhook",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_13"
+        ]
+      },
+      "num_sessions": 13,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-02-28",
+      "last_used": "2026-03-15",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "ios webhook",
+      "cancel_note": "ios webhook"
+    },
+    {
+      "primary_reason": "webhook",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_44"
+        ]
+      },
+      "num_sessions": 44,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-01",
+      "last_used": "2026-04-07",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "by webhook",
+      "cancel_note": "by webhook"
+    },
+    {
+      "primary_reason": "job_change",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.1,
+        "churn_risk_score": 0.57,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_68"
+        ]
+      },
+      "num_sessions": 68,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-02",
+      "last_used": "2026-04-06",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "Changed Job",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_27"
+        ]
+      },
+      "num_sessions": 27,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-02",
+      "last_used": "2026-04-05",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "It's too expensive",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_20"
+        ]
+      },
+      "num_sessions": 20,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-02",
+      "last_used": "2026-04-07",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "It's too expensive",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_56"
+        ]
+      },
+      "num_sessions": 56,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-04",
+      "last_used": "2026-04-01",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "It's too expensive",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "webhook",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_35"
+        ]
+      },
+      "num_sessions": 35,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-06",
+      "last_used": "2026-03-13",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "by webhook",
+      "cancel_note": "by webhook"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_22"
+        ]
+      },
+      "num_sessions": 22,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-06",
+      "last_used": "2026-03-20",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "Cost-related reasons"
+    },
+    {
+      "primary_reason": "job_change",
+      "plan_tier": "annual",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.1,
+        "churn_risk_score": 0.57,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_1"
+        ]
+      },
+      "num_sessions": 1,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-09",
+      "last_used": "2026-03-09",
+      "payment_interval": "year",
+      "revenue": 0.0,
+      "cancel_reason": "Changed Job",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_60"
+        ]
+      },
+      "num_sessions": 60,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-10",
+      "last_used": "2026-03-18",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "Cost-related reasons"
+    },
+    {
+      "primary_reason": "user_initiated",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_78"
+        ]
+      },
+      "num_sessions": 78,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-10",
+      "last_used": "2026-04-07",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "annual",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_3"
+        ]
+      },
+      "num_sessions": 3,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-11",
+      "last_used": "2026-03-12",
+      "payment_interval": "year",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "Cost-related reasons"
+    },
+    {
+      "primary_reason": "user_initiated",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_7"
+        ]
+      },
+      "num_sessions": 7,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-11",
+      "last_used": "2026-03-14",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "Other@@ sin dinero"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_5"
+        ]
+      },
+      "num_sessions": 5,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-12",
+      "last_used": "2026-03-12",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "It's too expensive",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "user_initiated",
+      "plan_tier": "annual",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_60"
+        ]
+      },
+      "num_sessions": 60,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-12",
+      "last_used": "2026-03-23",
+      "payment_interval": "year",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "route_quality",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.7,
+        "trust_risk": 0.4,
+        "save_openness": 0.4,
+        "churn_risk_score": 0.63,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_6"
+        ]
+      },
+      "num_sessions": 6,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-13",
+      "last_used": "2026-03-14",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "Routes were not proper",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "route_quality",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.7,
+        "trust_risk": 0.4,
+        "save_openness": 0.4,
+        "churn_risk_score": 0.63,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_28"
+        ]
+      },
+      "num_sessions": 28,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-14",
+      "last_used": "2026-03-17",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "Routes were not proper",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_41"
+        ]
+      },
+      "num_sessions": 41,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-14",
+      "last_used": "2026-04-05",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "Cost-related reasons"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_23"
+        ]
+      },
+      "num_sessions": 23,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-14",
+      "last_used": "2026-04-04",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "It's too expensive",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "no_need",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.4,
+        "churn_risk_score": 0.51,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_16"
+        ]
+      },
+      "num_sessions": 16,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-14",
+      "last_used": "2026-03-31",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "My reason not listed",
+      "cancel_note": "n\u00e3o atendeu minhas expectativas, fica rodando com internet boa e n\u00e3o aparece o endere\u00e7o"
+    },
+    {
+      "primary_reason": "webhook",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_12"
+        ]
+      },
+      "num_sessions": 12,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-16",
+      "last_used": "2026-03-17",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "by webhook",
+      "cancel_note": "by webhook"
+    },
+    {
+      "primary_reason": "webhook",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_19"
+        ]
+      },
+      "num_sessions": 19,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-18",
+      "last_used": "2026-04-01",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "by webhook",
+      "cancel_note": "by webhook"
+    },
+    {
+      "primary_reason": "job_change",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.1,
+        "churn_risk_score": 0.57,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_15"
+        ]
+      },
+      "num_sessions": 15,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-23",
+      "last_used": "2026-03-31",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "Changed Job",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "user_initiated",
+      "plan_tier": "quarterly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_12"
+        ]
+      },
+      "num_sessions": 12,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-23",
+      "last_used": "2026-04-06",
+      "payment_interval": "quarter",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "user_initiated",
+      "plan_tier": "annual",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_55"
+        ]
+      },
+      "num_sessions": 55,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-26",
+      "last_used": "2026-04-03",
+      "payment_interval": "year",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_9"
+        ]
+      },
+      "num_sessions": 9,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2026-03-27",
+      "last_used": "2026-04-03",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "It's too expensive",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "user_initiated",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_1005"
+        ]
+      },
+      "num_sessions": 1005,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2022-03-01",
+      "last_used": "2026-03-31",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "user_initiated",
+      "plan_tier": "annual",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_730"
+        ]
+      },
+      "num_sessions": 730,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2022-03-10",
+      "last_used": "2026-04-01",
+      "payment_interval": "year",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "job_change",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.1,
+        "churn_risk_score": 0.57,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_55"
+        ]
+      },
+      "num_sessions": 55,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2022-03-12",
+      "last_used": "2026-03-28",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "Changed Job",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "route_quality",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.7,
+        "trust_risk": 0.4,
+        "save_openness": 0.4,
+        "churn_risk_score": 0.63,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_6238"
+        ]
+      },
+      "num_sessions": 6238,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2022-03-01",
+      "last_used": "2026-04-07",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "Routes were not proper",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "webhook",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_192"
+        ]
+      },
+      "num_sessions": 192,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2022-04-04",
+      "last_used": "2026-03-31",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "by webhook",
+      "cancel_note": "by webhook"
+    },
+    {
+      "primary_reason": "user_initiated",
+      "plan_tier": "weekly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_615"
+        ]
+      },
+      "num_sessions": 615,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2022-05-14",
+      "last_used": "2026-04-07",
+      "payment_interval": "week",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "price",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.3,
+        "trust_risk": 0.2,
+        "save_openness": 0.6,
+        "churn_risk_score": 0.47,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_1430"
+        ]
+      },
+      "num_sessions": 1430,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2022-03-03",
+      "last_used": "2026-03-09",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "It's too expensive",
+      "cancel_note": "N/A"
+    },
+    {
+      "primary_reason": "user_initiated",
+      "plan_tier": "monthly",
+      "student_type": "logistics",
+      "features": {
+        "frustration_level": 0.2,
+        "trust_risk": 0.2,
+        "save_openness": 0.3,
+        "churn_risk_score": 0.5,
+        "feature_requests": [],
+        "bug_signals": [],
+        "tags": [
+          "fleet_0",
+          "sessions_176"
+        ]
+      },
+      "num_sessions": 176,
+      "fleet_size": 0,
+      "total_routes_created": 0,
+      "total_routes_optimized": 0,
+      "total_stops_planned": 0,
+      "first_used": "2022-04-23",
+      "last_used": "2026-03-18",
+      "payment_interval": "month",
+      "revenue": 0.0,
+      "cancel_reason": "User canceled the subscription",
+      "cancel_note": "Other"
+    }
+  ],
+  "client_id": "zeo_auto",
+  "total": 81
+}

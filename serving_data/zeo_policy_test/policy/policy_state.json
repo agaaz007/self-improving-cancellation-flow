@@ -1,0 +1,793 @@
+{
+  "policy_version": "v1",
+  "created_at": 1775650669.445575,
+  "updated_at": 1775650702.2295969,
+  "config": {
+    "exploration_rate": 0.15,
+    "holdout_rate": 0.1,
+    "sticky_days": 7,
+    "discount_cap_30d": 1,
+    "seed": 7,
+    "control_action_id": "control_graceful_exit"
+  },
+  "arms_global": {
+    "control_graceful_exit": {
+      "alpha": 12.7,
+      "beta": 5.0,
+      "impressions": 10.0,
+      "outcomes": 6.0
+    },
+    "pause_plan": {
+      "alpha": 26.8,
+      "beta": 4.2,
+      "impressions": 16.0,
+      "outcomes": 13.0
+    },
+    "downgrade_basic": {
+      "alpha": 4.7,
+      "beta": 2.0,
+      "impressions": 3.0,
+      "outcomes": 2.0
+    },
+    "discount_20": {
+      "alpha": 1.0,
+      "beta": 3.0,
+      "impressions": 2.0,
+      "outcomes": 0.0
+    },
+    "discount_40": {
+      "alpha": 1.0,
+      "beta": 3.0,
+      "impressions": 2.0,
+      "outcomes": 0.0
+    },
+    "route_optimization_demo": {
+      "alpha": 19.7,
+      "beta": 0.2999999999999998,
+      "impressions": 10.0,
+      "outcomes": 5.0
+    },
+    "fleet_rightsize": {
+      "alpha": 16.0,
+      "beta": -1.0,
+      "impressions": 7.0,
+      "outcomes": 3.0
+    }
+  },
+  "arms_context": {
+    "price|monthly|control_graceful_exit": {
+      "alpha": 3.0,
+      "beta": 1.0,
+      "impressions": 1.0,
+      "outcomes": 1.0
+    },
+    "other|weekly|control_graceful_exit": {
+      "alpha": 4.7,
+      "beta": 1.0,
+      "impressions": 2.0,
+      "outcomes": 2.0
+    },
+    "other|weekly|pause_plan": {
+      "alpha": 5.0,
+      "beta": 1.0,
+      "impressions": 2.0,
+      "outcomes": 2.0
+    },
+    "other|weekly|downgrade_basic": {
+      "alpha": 3.0,
+      "beta": 1.0,
+      "impressions": 1.0,
+      "outcomes": 1.0
+    },
+    "other|weekly|route_optimization_demo": {
+      "alpha": 3.0,
+      "beta": 2.0,
+      "impressions": 2.0,
+      "outcomes": 1.0
+    },
+    "other|weekly|fleet_rightsize": {
+      "alpha": 5.0,
+      "beta": 2.0,
+      "impressions": 3.0,
+      "outcomes": 2.0
+    },
+    "other|annual|control_graceful_exit": {
+      "alpha": 1.0,
+      "beta": 3.0,
+      "impressions": 2.0,
+      "outcomes": 0.0
+    },
+    "other|annual|pause_plan": {
+      "alpha": 5.0,
+      "beta": 3.0,
+      "impressions": 4.0,
+      "outcomes": 2.0
+    },
+    "other|annual|downgrade_basic": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "other|annual|discount_20": {
+      "alpha": 1.0,
+      "beta": 2.0,
+      "impressions": 1.0,
+      "outcomes": 0.0
+    },
+    "other|annual|discount_40": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "other|annual|route_optimization_demo": {
+      "alpha": 1.0,
+      "beta": 2.0,
+      "impressions": 1.0,
+      "outcomes": 0.0
+    },
+    "other|annual|fleet_rightsize": {
+      "alpha": 1.0,
+      "beta": 2.0,
+      "impressions": 1.0,
+      "outcomes": 0.0
+    },
+    "other|weekly|discount_20": {
+      "alpha": 1.0,
+      "beta": 2.0,
+      "impressions": 1.0,
+      "outcomes": 0.0
+    },
+    "other|weekly|discount_40": {
+      "alpha": 1.0,
+      "beta": 2.0,
+      "impressions": 1.0,
+      "outcomes": 0.0
+    },
+    "other|quarterly|control_graceful_exit": {
+      "alpha": 5.0,
+      "beta": 3.0,
+      "impressions": 4.0,
+      "outcomes": 2.0
+    },
+    "other|quarterly|pause_plan": {
+      "alpha": 8.8,
+      "beta": 1.0,
+      "impressions": 4.0,
+      "outcomes": 4.0
+    },
+    "other|quarterly|downgrade_basic": {
+      "alpha": 2.7,
+      "beta": 1.0,
+      "impressions": 1.0,
+      "outcomes": 1.0
+    },
+    "other|quarterly|route_optimization_demo": {
+      "alpha": 5.0,
+      "beta": 2.0,
+      "impressions": 3.0,
+      "outcomes": 2.0
+    },
+    "other|quarterly|fleet_rightsize": {
+      "alpha": 1.0,
+      "beta": 2.0,
+      "impressions": 1.0,
+      "outcomes": 0.0
+    },
+    "price|monthly|pause_plan": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|monthly|downgrade_basic": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|monthly|discount_20": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|monthly|discount_40": {
+      "alpha": 1.0,
+      "beta": 2.0,
+      "impressions": 1.0,
+      "outcomes": 0.0
+    },
+    "price|monthly|route_optimization_demo": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|monthly|fleet_rightsize": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "other|monthly|downgrade_basic": {
+      "alpha": 1.0,
+      "beta": 2.0,
+      "impressions": 1.0,
+      "outcomes": 0.0
+    },
+    "other|monthly|control_graceful_exit": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "other|monthly|pause_plan": {
+      "alpha": 5.0,
+      "beta": 1.0,
+      "impressions": 2.0,
+      "outcomes": 2.0
+    },
+    "other|monthly|discount_20": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "other|monthly|discount_40": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "other|monthly|route_optimization_demo": {
+      "alpha": 2.7,
+      "beta": 2.0,
+      "impressions": 2.0,
+      "outcomes": 1.0
+    },
+    "other|monthly|fleet_rightsize": {
+      "alpha": 3.0,
+      "beta": 2.0,
+      "impressions": 2.0,
+      "outcomes": 1.0
+    },
+    "other|quarterly|discount_20": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "other|quarterly|discount_40": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|annual|control_graceful_exit": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|annual|pause_plan": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|annual|downgrade_basic": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|annual|route_optimization_demo": {
+      "alpha": 1.0,
+      "beta": 2.3,
+      "impressions": 1.0,
+      "outcomes": 0.0
+    },
+    "price|annual|fleet_rightsize": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|quarterly|control_graceful_exit": {
+      "alpha": 3.0,
+      "beta": 1.0,
+      "impressions": 1.0,
+      "outcomes": 1.0
+    },
+    "price|quarterly|pause_plan": {
+      "alpha": 5.0,
+      "beta": 1.0,
+      "impressions": 2.0,
+      "outcomes": 2.0
+    },
+    "price|quarterly|downgrade_basic": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|quarterly|route_optimization_demo": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|quarterly|fleet_rightsize": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|weekly|control_graceful_exit": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|weekly|pause_plan": {
+      "alpha": 3.0,
+      "beta": 2.2,
+      "impressions": 2.0,
+      "outcomes": 1.0
+    },
+    "price|weekly|downgrade_basic": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|weekly|discount_20": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|weekly|discount_40": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|weekly|route_optimization_demo": {
+      "alpha": 3.0,
+      "beta": 1.0,
+      "impressions": 1.0,
+      "outcomes": 1.0
+    },
+    "price|weekly|fleet_rightsize": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|quarterly|discount_20": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|quarterly|discount_40": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    }
+  },
+  "sticky_assignments": {
+    "user_1007_0": {
+      "action_id": "control_graceful_exit",
+      "timestamp": 1775650669.4473479
+    },
+    "user_1007_1": {
+      "action_id": "control_graceful_exit",
+      "timestamp": 1775650669.447962
+    },
+    "user_1007_2": {
+      "action_id": "fleet_rightsize",
+      "timestamp": 1775650669.44833
+    },
+    "user_1007_3": {
+      "action_id": "discount_20",
+      "timestamp": 1775650669.448836
+    },
+    "user_1007_4": {
+      "action_id": "discount_20",
+      "timestamp": 1775650669.449282
+    },
+    "user_1007_5": {
+      "action_id": "control_graceful_exit",
+      "timestamp": 1775650669.449714
+    },
+    "user_1007_6": {
+      "action_id": "discount_40",
+      "timestamp": 1775650669.450467
+    },
+    "user_1007_7": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775650669.45104
+    },
+    "user_1007_8": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775650669.4515939
+    },
+    "user_1007_9": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775650669.4521852
+    },
+    "user_1007_10": {
+      "action_id": "fleet_rightsize",
+      "timestamp": 1775650669.452822
+    },
+    "user_1007_11": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775650669.453471
+    },
+    "user_1007_12": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775650669.454049
+    },
+    "user_1007_14": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775650669.4555311
+    },
+    "user_1007_15": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775650669.45611
+    },
+    "user_1007_16": {
+      "action_id": "discount_40",
+      "timestamp": 1775650669.456716
+    },
+    "user_1007_17": {
+      "action_id": "pause_plan",
+      "timestamp": 1775650669.457328
+    },
+    "user_1007_18": {
+      "action_id": "pause_plan",
+      "timestamp": 1775650669.457917
+    },
+    "user_1007_19": {
+      "action_id": "control_graceful_exit",
+      "timestamp": 1775650669.458527
+    },
+    "user_1007_20": {
+      "action_id": "control_graceful_exit",
+      "timestamp": 1775650669.4591281
+    },
+    "user_1007_21": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775650669.4597728
+    },
+    "user_1007_22": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775650669.460594
+    },
+    "user_1007_23": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775650669.461211
+    },
+    "user_1007_24": {
+      "action_id": "fleet_rightsize",
+      "timestamp": 1775650669.461834
+    },
+    "user_1007_25": {
+      "action_id": "pause_plan",
+      "timestamp": 1775650669.462455
+    },
+    "user_1007_26": {
+      "action_id": "pause_plan",
+      "timestamp": 1775650669.463097
+    },
+    "user_1007_27": {
+      "action_id": "pause_plan",
+      "timestamp": 1775650669.463756
+    },
+    "user_1007_28": {
+      "action_id": "pause_plan",
+      "timestamp": 1775650669.464401
+    },
+    "user_1007_29": {
+      "action_id": "fleet_rightsize",
+      "timestamp": 1775650669.465188
+    },
+    "user_1007_31": {
+      "action_id": "pause_plan",
+      "timestamp": 1775650669.467107
+    },
+    "user_1007_33": {
+      "action_id": "pause_plan",
+      "timestamp": 1775650669.468569
+    },
+    "user_1007_34": {
+      "action_id": "pause_plan",
+      "timestamp": 1775650669.469346
+    },
+    "user_1007_36": {
+      "action_id": "fleet_rightsize",
+      "timestamp": 1775650669.470786
+    },
+    "user_1007_37": {
+      "action_id": "fleet_rightsize",
+      "timestamp": 1775650669.471531
+    },
+    "user_1007_38": {
+      "action_id": "pause_plan",
+      "timestamp": 1775650669.472268
+    },
+    "user_1007_39": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775650669.4730198
+    },
+    "user_1007_40": {
+      "action_id": "control_graceful_exit",
+      "timestamp": 1775650669.473782
+    },
+    "user_1007_41": {
+      "action_id": "pause_plan",
+      "timestamp": 1775650669.4745011
+    },
+    "user_1007_42": {
+      "action_id": "pause_plan",
+      "timestamp": 1775650669.4753401
+    },
+    "user_1007_43": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775650669.47613
+    },
+    "user_1007_44": {
+      "action_id": "pause_plan",
+      "timestamp": 1775650669.4768882
+    },
+    "user_1007_45": {
+      "action_id": "fleet_rightsize",
+      "timestamp": 1775650669.477671
+    },
+    "user_1007_46": {
+      "action_id": "pause_plan",
+      "timestamp": 1775650669.478457
+    },
+    "user_1007_47": {
+      "action_id": "pause_plan",
+      "timestamp": 1775650669.4791942
+    },
+    "user_1007_48": {
+      "action_id": "pause_plan",
+      "timestamp": 1775650669.479955
+    },
+    "user_1007_49": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775650669.480725
+    }
+  },
+  "discount_exposures": {
+    "user_1007_0": [],
+    "user_1007_1": [],
+    "user_1007_2": [],
+    "user_1007_3": [
+      1775650669.448836
+    ],
+    "user_1007_4": [
+      1775650669.449282
+    ],
+    "user_1007_5": [],
+    "user_1007_6": [
+      1775650669.450467
+    ],
+    "user_1007_7": [],
+    "user_1007_8": [],
+    "user_1007_9": [],
+    "user_1007_10": [],
+    "user_1007_11": [],
+    "user_1007_12": [],
+    "user_1007_13": [],
+    "user_1007_14": [],
+    "user_1007_15": [],
+    "user_1007_16": [
+      1775650669.456716
+    ],
+    "user_1007_17": [],
+    "user_1007_18": [],
+    "user_1007_19": [],
+    "user_1007_20": [],
+    "user_1007_21": [],
+    "user_1007_22": [],
+    "user_1007_23": [],
+    "user_1007_24": [],
+    "user_1007_25": [],
+    "user_1007_26": [],
+    "user_1007_27": [],
+    "user_1007_28": [],
+    "user_1007_29": [],
+    "user_1007_30": [],
+    "user_1007_31": [],
+    "user_1007_32": [],
+    "user_1007_33": [],
+    "user_1007_34": [],
+    "user_1007_35": [],
+    "user_1007_36": [],
+    "user_1007_37": [],
+    "user_1007_38": [],
+    "user_1007_39": [],
+    "user_1007_40": [],
+    "user_1007_41": [],
+    "user_1007_42": [],
+    "user_1007_43": [],
+    "user_1007_44": [],
+    "user_1007_45": [],
+    "user_1007_46": [],
+    "user_1007_47": [],
+    "user_1007_48": [],
+    "user_1007_49": []
+  },
+  "metrics": {
+    "decisions": 50,
+    "outcomes": 50,
+    "fallbacks": 0,
+    "blocked_actions_total": 28
+  },
+  "strategy_pool": {
+    "pause_plan": {
+      "s0": {
+        "dims": {
+          "message_angle": "flexibility_relief",
+          "proof_style": "similar_user_story",
+          "personalization": "contextual",
+          "contextual_grounding": "seasonal_demand",
+          "creative_treatment": "plain_note",
+          "friction_reducer": "one_click_pause"
+        },
+        "mean_score": 0.0,
+        "score_std": 0.0,
+        "n_evals": 0,
+        "generation": 0,
+        "source": "default"
+      }
+    },
+    "downgrade_basic": {
+      "s0": {
+        "dims": {
+          "message_angle": "cost_control",
+          "proof_style": "roi_calculation",
+          "personalization": "contextual",
+          "contextual_grounding": "pricing_context",
+          "creative_treatment": "options_table",
+          "friction_reducer": "instant_downgrade"
+        },
+        "mean_score": 0.0,
+        "score_std": 0.0,
+        "n_evals": 0,
+        "generation": 0,
+        "source": "default"
+      }
+    },
+    "discount_20": {
+      "s0": {
+        "dims": {
+          "message_angle": "cost_control",
+          "proof_style": "metric_snapshot",
+          "personalization": "contextual",
+          "contextual_grounding": "pricing_context",
+          "creative_treatment": "plain_note",
+          "friction_reducer": "none"
+        },
+        "mean_score": 0.0,
+        "score_std": 0.0,
+        "n_evals": 0,
+        "generation": 0,
+        "source": "default"
+      }
+    },
+    "discount_40": {
+      "s0": {
+        "dims": {
+          "message_angle": "cost_control",
+          "proof_style": "roi_calculation",
+          "personalization": "contextual",
+          "contextual_grounding": "cost_per_mile",
+          "creative_treatment": "cost_analysis",
+          "friction_reducer": "none"
+        },
+        "mean_score": 0.0,
+        "score_std": 0.0,
+        "n_evals": 0,
+        "generation": 0,
+        "source": "default"
+      }
+    },
+    "route_optimization_demo": {
+      "s0": {
+        "dims": {
+          "message_angle": "efficiency_gain",
+          "proof_style": "before_after",
+          "personalization": "behavioral",
+          "contextual_grounding": "route_efficiency",
+          "creative_treatment": "optimization_replay",
+          "friction_reducer": "callback_scheduling"
+        },
+        "mean_score": 0.0,
+        "score_std": 0.0,
+        "n_evals": 0,
+        "generation": 0,
+        "source": "default"
+      }
+    },
+    "fleet_rightsize": {
+      "s0": {
+        "dims": {
+          "message_angle": "cost_control",
+          "proof_style": "metric_snapshot",
+          "personalization": "behavioral",
+          "contextual_grounding": "fleet_utilization",
+          "creative_treatment": "usage_summary",
+          "friction_reducer": "dedicated_onboarding"
+        },
+        "mean_score": 0.0,
+        "score_std": 0.0,
+        "n_evals": 0,
+        "generation": 0,
+        "source": "default"
+      }
+    },
+    "control_graceful_exit": {
+      "s0": {
+        "dims": {
+          "message_angle": "empathetic_exit",
+          "proof_style": "none",
+          "personalization": "generic",
+          "contextual_grounding": "generic",
+          "creative_treatment": "plain_note",
+          "friction_reducer": "none"
+        },
+        "mean_score": 0.0,
+        "score_std": 0.0,
+        "n_evals": 0,
+        "generation": 0,
+        "source": "default"
+      }
+    }
+  },
+  "strategy_arms": {
+    "pause_plan:s0": {
+      "alpha": 1.0,
+      "beta": 1.0
+    },
+    "downgrade_basic:s0": {
+      "alpha": 1.0,
+      "beta": 1.0
+    },
+    "discount_20:s0": {
+      "alpha": 1.0,
+      "beta": 1.0
+    },
+    "discount_40:s0": {
+      "alpha": 1.0,
+      "beta": 1.0
+    },
+    "route_optimization_demo:s0": {
+      "alpha": 1.0,
+      "beta": 1.0
+    },
+    "fleet_rightsize:s0": {
+      "alpha": 1.0,
+      "beta": 1.0
+    },
+    "control_graceful_exit:s0": {
+      "alpha": 1.0,
+      "beta": 1.0
+    }
+  },
+  "generation_meta": {
+    "last_generation": 0,
+    "next_strategy_id": 1,
+    "stagnation_count": 1,
+    "stagnation_threshold": 5,
+    "total_generations": 0
+  }
+}

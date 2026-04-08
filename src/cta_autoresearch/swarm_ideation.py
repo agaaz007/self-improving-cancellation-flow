@@ -132,13 +132,38 @@ def _role_bonus(candidate: StrategyCandidate, role_id: str) -> float:
     return bonus
 
 
+def _safe_list(val: object) -> list:
+    """Ensure val is a list — LLM sometimes returns a scalar or string instead."""
+    if isinstance(val, list):
+        return val
+    if isinstance(val, str) and val.strip():
+        return [val]
+    return []
+
+
+def _safe_confidence(val: object) -> float:
+    """Parse confidence from LLM output — handles floats, ints, and text like 'high'."""
+    if isinstance(val, (int, float)):
+        return min(max(float(val), 0.01), 0.99)
+    text_map = {"high": 0.85, "medium": 0.65, "low": 0.40, "very high": 0.92, "very low": 0.20}
+    try:
+        return min(max(float(val), 0.01), 0.99)
+    except (TypeError, ValueError):
+        return text_map.get(str(val).lower().strip(), 0.72)
+
+
+def _safe_label(catalog: dict, key: str) -> str:
+    entry = catalog.get(key)
+    return entry["label"] if entry else key.replace("_", " ").title()
+
+
 def _idea_thesis(role_label: str, segment: str, candidate: StrategyCandidate, settings: ResearchSettings) -> str:
     offers = offer_catalog(settings)
     return (
         f"{role_label} wants to win back {segment.replace('_', ' ')} users with "
-        f"{MESSAGE_ANGLES[candidate.message_angle]['label'].lower()}, "
-        f"{offers[candidate.offer]['label'].lower()}, and "
-        f"{CTAS[candidate.cta]['label'].lower()}."
+        f"{_safe_label(MESSAGE_ANGLES, candidate.message_angle).lower()}, "
+        f"{_safe_label(offers, candidate.offer).lower()}, and "
+        f"{_safe_label(CTAS, candidate.cta).lower()}."
     )
 
 
@@ -146,7 +171,7 @@ def _idea_rationale(role_id: str, candidate: StrategyCandidate) -> str:
     focus = ", ".join(ROLE_PRIORS[role_id]["segment_weights"])
     return (
         f"Selected because this role over-weights {focus.replace('_', ' ')}, "
-        f"and the candidate leans into {MESSAGE_ANGLES[candidate.message_angle]['label']} "
+        f"and the candidate leans into {_safe_label(MESSAGE_ANGLES, candidate.message_angle)} "
         f"without defaulting to an unnecessarily expensive save."
     )
 
@@ -381,12 +406,15 @@ def _openai_proposals(
                 _persona_prompt(personas, settings),
             ]
         )
-        response = client.responses.create(
+        # Only pass reasoning param for models that support it (o1, o3, o4-mini, etc.)
+        api_kwargs: dict = dict(
             model=settings.model_name,
             input=prompt,
-            reasoning={"effort": settings.openai_reasoning_effort},
             max_output_tokens=max(1400, 650 * settings.idea_proposals_per_agent),
         )
+        if any(settings.model_name.startswith(p) for p in ("o1", "o3", "o4")):
+            api_kwargs["reasoning"] = {"effort": settings.openai_reasoning_effort}
+        response = client.responses.create(**api_kwargs)
         for item in _parse_response_payload(response.output_text):
             segment = str(item.get("target_segment", "unknown"))
             fallback_persona = next((persona for persona in personas if persona.features.segment == segment), personas[0])
@@ -407,23 +435,23 @@ def _openai_proposals(
                 user_state_hypothesis=str(item.get("user_state_hypothesis") or f"{segment.replace('_', ' ')} users need a more relevant rescue path."),
                 cancellation_moment_hypothesis=str(item.get("cancellation_moment_hypothesis") or "The user is leaving because the current cancellation screen does not address the real reason for churn."),
                 rescue_objective=str(item.get("rescue_objective") or str(item.get("thesis") or "")),
-                step_sequence=tuple(str(part) for part in item.get("step_sequence", []) if str(part).strip()) or (
+                step_sequence=tuple(str(part) for part in _safe_list(item.get("step_sequence", [])) if str(part).strip()) or (
                     "Acknowledge the user intent.",
                     "Offer the most relevant rescue path.",
                     "Make the next action feel reversible and safe.",
                 ),
-                copy_blocks=tuple(str(part) for part in item.get("copy_blocks", []) if str(part).strip()) or (
+                copy_blocks=tuple(str(part) for part in _safe_list(item.get("copy_blocks", [])) if str(part).strip()) or (
                     str(item.get("label") or "Save concept"),
                     str(item.get("rationale") or "Model-generated rescue flow."),
                 ),
                 offer_logic=str(item.get("offer_logic") or str(item.get("offer") or "No offer.")),
                 cta_logic=str(item.get("cta_logic") or str(item.get("cta") or "Provide the clearest next step.")),
                 branch_logic=str(item.get("branch_logic") or "If the primary rescue fails, reveal a lower-friction fallback."),
-                trust_risks=tuple(str(part) for part in item.get("trust_risks", []) if str(part).strip()),
-                economic_risks=tuple(str(part) for part in item.get("economic_risks", []) if str(part).strip()),
-                evaluation_notes=tuple(str(part) for part in item.get("evaluation_notes", []) if str(part).strip()),
+                trust_risks=tuple(str(part) for part in _safe_list(item.get("trust_risks", [])) if str(part).strip()),
+                economic_risks=tuple(str(part) for part in _safe_list(item.get("economic_risks", [])) if str(part).strip()),
+                evaluation_notes=tuple(str(part) for part in _safe_list(item.get("evaluation_notes", [])) if str(part).strip()),
                 falsifiable_assumption=str(item.get("falsifiable_assumption") or ""),
-                confidence=float(item.get("confidence", 0.72)),
+                confidence=_safe_confidence(item.get("confidence", 0.72)),
             )
             candidate, compile_notes = compile_flow_spec(
                 spec,

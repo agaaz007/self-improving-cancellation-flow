@@ -1,0 +1,1491 @@
+{
+  "policy_version": "v1",
+  "created_at": 1775632704.9850602,
+  "updated_at": 1775641873.5475829,
+  "config": {
+    "exploration_rate": 0.15,
+    "holdout_rate": 0.1,
+    "sticky_days": 7,
+    "discount_cap_30d": 1,
+    "seed": 42,
+    "control_action_id": "control_graceful_exit"
+  },
+  "arms_global": {
+    "control_graceful_exit": {
+      "alpha": 18.7,
+      "beta": 26.7,
+      "impressions": 34.0,
+      "outcomes": 9.0
+    },
+    "pause_plan": {
+      "alpha": 91.60000000000001,
+      "beta": 20.900000000000002,
+      "impressions": 65.0,
+      "outcomes": 46.0
+    },
+    "downgrade_basic": {
+      "alpha": 62.599999999999994,
+      "beta": 24.000000000000004,
+      "impressions": 52.0,
+      "outcomes": 31.0
+    },
+    "discount_20": {
+      "alpha": 9.0,
+      "beta": 6.2,
+      "impressions": 9.0,
+      "outcomes": 4.0
+    },
+    "discount_40": {
+      "alpha": 18.7,
+      "beta": 5.0,
+      "impressions": 13.0,
+      "outcomes": 9.0
+    },
+    "route_optimization_demo": {
+      "alpha": 22.7,
+      "beta": 11.2,
+      "impressions": 21.0,
+      "outcomes": 11.0
+    },
+    "fleet_rightsize": {
+      "alpha": 3.0,
+      "beta": 6.0,
+      "impressions": 6.0,
+      "outcomes": 1.0
+    }
+  },
+  "arms_context": {
+    "other|monthly|control_graceful_exit": {
+      "alpha": 3.0,
+      "beta": 4.0,
+      "impressions": 4.0,
+      "outcomes": 1.0
+    },
+    "other|monthly|pause_plan": {
+      "alpha": 10.7,
+      "beta": 4.3,
+      "impressions": 8.0,
+      "outcomes": 5.0
+    },
+    "other|monthly|downgrade_basic": {
+      "alpha": 12.8,
+      "beta": 6.8,
+      "impressions": 11.0,
+      "outcomes": 6.0
+    },
+    "other|monthly|discount_20": {
+      "alpha": 1.0,
+      "beta": 2.0,
+      "impressions": 1.0,
+      "outcomes": 0.0
+    },
+    "other|monthly|discount_40": {
+      "alpha": 9.0,
+      "beta": 1.0,
+      "impressions": 4.0,
+      "outcomes": 4.0
+    },
+    "other|monthly|route_optimization_demo": {
+      "alpha": 5.0,
+      "beta": 2.0,
+      "impressions": 3.0,
+      "outcomes": 2.0
+    },
+    "other|monthly|fleet_rightsize": {
+      "alpha": 1.0,
+      "beta": 2.0,
+      "impressions": 1.0,
+      "outcomes": 0.0
+    },
+    "other|quarterly|control_graceful_exit": {
+      "alpha": 5.0,
+      "beta": 14.0,
+      "impressions": 15.0,
+      "outcomes": 2.0
+    },
+    "other|quarterly|pause_plan": {
+      "alpha": 27.0,
+      "beta": 3.0,
+      "impressions": 15.0,
+      "outcomes": 13.0
+    },
+    "other|quarterly|downgrade_basic": {
+      "alpha": 11.0,
+      "beta": 5.0,
+      "impressions": 9.0,
+      "outcomes": 5.0
+    },
+    "other|quarterly|discount_20": {
+      "alpha": 3.0,
+      "beta": 1.0,
+      "impressions": 1.0,
+      "outcomes": 1.0
+    },
+    "other|quarterly|discount_40": {
+      "alpha": 3.0,
+      "beta": 3.0,
+      "impressions": 3.0,
+      "outcomes": 1.0
+    },
+    "other|quarterly|route_optimization_demo": {
+      "alpha": 5.0,
+      "beta": 3.0,
+      "impressions": 4.0,
+      "outcomes": 2.0
+    },
+    "other|quarterly|fleet_rightsize": {
+      "alpha": 1.0,
+      "beta": 3.0,
+      "impressions": 2.0,
+      "outcomes": 0.0
+    },
+    "other|annual|discount_20": {
+      "alpha": 3.0,
+      "beta": 2.2,
+      "impressions": 2.0,
+      "outcomes": 1.0
+    },
+    "other|annual|control_graceful_exit": {
+      "alpha": 3.0,
+      "beta": 7.4,
+      "impressions": 7.0,
+      "outcomes": 1.0
+    },
+    "other|annual|pause_plan": {
+      "alpha": 26.4,
+      "beta": 6.3,
+      "impressions": 18.0,
+      "outcomes": 13.0
+    },
+    "other|annual|downgrade_basic": {
+      "alpha": 9.0,
+      "beta": 3.0,
+      "impressions": 6.0,
+      "outcomes": 4.0
+    },
+    "other|annual|discount_40": {
+      "alpha": 7.0,
+      "beta": 1.0,
+      "impressions": 3.0,
+      "outcomes": 3.0
+    },
+    "other|annual|route_optimization_demo": {
+      "alpha": 13.0,
+      "beta": 4.0,
+      "impressions": 9.0,
+      "outcomes": 6.0
+    },
+    "other|annual|fleet_rightsize": {
+      "alpha": 1.0,
+      "beta": 3.0,
+      "impressions": 2.0,
+      "outcomes": 0.0
+    },
+    "other|weekly|fleet_rightsize": {
+      "alpha": 3.0,
+      "beta": 1.0,
+      "impressions": 1.0,
+      "outcomes": 1.0
+    },
+    "price|annual|control_graceful_exit": {
+      "alpha": 1.0,
+      "beta": 2.0,
+      "impressions": 1.0,
+      "outcomes": 0.0
+    },
+    "price|annual|pause_plan": {
+      "alpha": 4.7,
+      "beta": 3.0,
+      "impressions": 4.0,
+      "outcomes": 2.0
+    },
+    "price|annual|downgrade_basic": {
+      "alpha": 3.0,
+      "beta": 1.0,
+      "impressions": 1.0,
+      "outcomes": 1.0
+    },
+    "price|annual|discount_20": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|annual|discount_40": {
+      "alpha": 2.7,
+      "beta": 2.0,
+      "impressions": 2.0,
+      "outcomes": 1.0
+    },
+    "price|annual|route_optimization_demo": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|annual|fleet_rightsize": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|weekly|control_graceful_exit": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|weekly|pause_plan": {
+      "alpha": 3.0,
+      "beta": 1.0,
+      "impressions": 1.0,
+      "outcomes": 1.0
+    },
+    "price|weekly|downgrade_basic": {
+      "alpha": 7.0,
+      "beta": 2.3,
+      "impressions": 4.0,
+      "outcomes": 3.0
+    },
+    "price|weekly|discount_20": {
+      "alpha": 1.0,
+      "beta": 2.0,
+      "impressions": 1.0,
+      "outcomes": 0.0
+    },
+    "price|weekly|discount_40": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|weekly|route_optimization_demo": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|weekly|fleet_rightsize": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "other|weekly|control_graceful_exit": {
+      "alpha": 7.0,
+      "beta": 3.3,
+      "impressions": 5.0,
+      "outcomes": 3.0
+    },
+    "other|weekly|pause_plan": {
+      "alpha": 22.8,
+      "beta": 7.3,
+      "impressions": 17.0,
+      "outcomes": 11.0
+    },
+    "other|weekly|downgrade_basic": {
+      "alpha": 22.8,
+      "beta": 7.6,
+      "impressions": 17.0,
+      "outcomes": 11.0
+    },
+    "other|weekly|discount_20": {
+      "alpha": 3.0,
+      "beta": 3.0,
+      "impressions": 3.0,
+      "outcomes": 1.0
+    },
+    "other|weekly|discount_40": {
+      "alpha": 1.0,
+      "beta": 2.0,
+      "impressions": 1.0,
+      "outcomes": 0.0
+    },
+    "other|weekly|route_optimization_demo": {
+      "alpha": 2.7,
+      "beta": 4.2,
+      "impressions": 4.0,
+      "outcomes": 1.0
+    },
+    "price|quarterly|control_graceful_exit": {
+      "alpha": 2.7,
+      "beta": 1.0,
+      "impressions": 1.0,
+      "outcomes": 1.0
+    },
+    "price|quarterly|pause_plan": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|quarterly|downgrade_basic": {
+      "alpha": 3.0,
+      "beta": 3.3,
+      "impressions": 3.0,
+      "outcomes": 1.0
+    },
+    "price|quarterly|route_optimization_demo": {
+      "alpha": 1.0,
+      "beta": 2.0,
+      "impressions": 1.0,
+      "outcomes": 0.0
+    },
+    "price|quarterly|fleet_rightsize": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|quarterly|discount_20": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|quarterly|discount_40": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|monthly|control_graceful_exit": {
+      "alpha": 3.0,
+      "beta": 1.0,
+      "impressions": 1.0,
+      "outcomes": 1.0
+    },
+    "price|monthly|pause_plan": {
+      "alpha": 3.0,
+      "beta": 2.0,
+      "impressions": 2.0,
+      "outcomes": 1.0
+    },
+    "price|monthly|downgrade_basic": {
+      "alpha": 1.0,
+      "beta": 2.0,
+      "impressions": 1.0,
+      "outcomes": 0.0
+    },
+    "price|monthly|discount_20": {
+      "alpha": 3.0,
+      "beta": 1.0,
+      "impressions": 1.0,
+      "outcomes": 1.0
+    },
+    "price|monthly|discount_40": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|monthly|route_optimization_demo": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    },
+    "price|monthly|fleet_rightsize": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "impressions": 0.0,
+      "outcomes": 0.0
+    }
+  },
+  "sticky_assignments": {
+    "user_1042_0": {
+      "action_id": "fleet_rightsize",
+      "timestamp": 1775632704.9865432
+    },
+    "user_1042_1": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632704.987288
+    },
+    "user_1042_2": {
+      "action_id": "discount_20",
+      "timestamp": 1775632704.987713
+    },
+    "user_1042_3": {
+      "action_id": "fleet_rightsize",
+      "timestamp": 1775632704.988127
+    },
+    "user_1042_4": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632704.988597
+    },
+    "user_1042_5": {
+      "action_id": "discount_20",
+      "timestamp": 1775632704.9890518
+    },
+    "user_1042_6": {
+      "action_id": "fleet_rightsize",
+      "timestamp": 1775632704.989598
+    },
+    "user_1042_7": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632704.990217
+    },
+    "user_1042_8": {
+      "action_id": "control_graceful_exit",
+      "timestamp": 1775632704.990874
+    },
+    "user_1042_9": {
+      "action_id": "control_graceful_exit",
+      "timestamp": 1775632704.9914508
+    },
+    "user_1042_11": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632704.993094
+    },
+    "user_1042_12": {
+      "action_id": "control_graceful_exit",
+      "timestamp": 1775632704.993828
+    },
+    "user_1042_15": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632704.99585
+    },
+    "user_1042_16": {
+      "action_id": "discount_40",
+      "timestamp": 1775632704.997761
+    },
+    "user_1042_17": {
+      "action_id": "control_graceful_exit",
+      "timestamp": 1775632704.9994838
+    },
+    "user_1042_18": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.000036
+    },
+    "user_1042_19": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632705.000659
+    },
+    "user_1042_20": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632705.001268
+    },
+    "user_1042_21": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.002151
+    },
+    "user_1042_22": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.002978
+    },
+    "user_1042_23": {
+      "action_id": "discount_40",
+      "timestamp": 1775632705.003896
+    },
+    "user_1042_24": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.0047848
+    },
+    "user_1042_25": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.005582
+    },
+    "user_1042_26": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.006235
+    },
+    "user_1042_27": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.006932
+    },
+    "user_1042_28": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632705.007617
+    },
+    "user_1042_29": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.008354
+    },
+    "user_1042_30": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.009005
+    },
+    "user_1042_31": {
+      "action_id": "discount_40",
+      "timestamp": 1775632705.009772
+    },
+    "user_1042_32": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632705.010415
+    },
+    "user_1042_33": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.011275
+    },
+    "user_1042_34": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.0119848
+    },
+    "user_1042_35": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632705.012834
+    },
+    "user_1042_36": {
+      "action_id": "discount_20",
+      "timestamp": 1775632705.013786
+    },
+    "user_1042_37": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.01483
+    },
+    "user_1042_38": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632705.0163682
+    },
+    "user_1042_40": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.0181692
+    },
+    "user_1042_41": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.0190568
+    },
+    "user_1042_42": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.019816
+    },
+    "user_1042_44": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.0215402
+    },
+    "user_1042_45": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632705.0223172
+    },
+    "user_1042_46": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632705.023137
+    },
+    "user_1042_48": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.025686
+    },
+    "user_1042_49": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632705.026803
+    },
+    "user_1042_50": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.029205
+    },
+    "user_1042_52": {
+      "action_id": "fleet_rightsize",
+      "timestamp": 1775632705.031446
+    },
+    "user_1042_54": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632705.03424
+    },
+    "user_1042_55": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.0355148
+    },
+    "user_1042_56": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.0366058
+    },
+    "user_1042_58": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632705.038483
+    },
+    "user_1042_59": {
+      "action_id": "discount_20",
+      "timestamp": 1775632705.039186
+    },
+    "user_1042_60": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.039957
+    },
+    "user_1042_61": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.0407119
+    },
+    "user_1042_62": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.041506
+    },
+    "user_1042_63": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.0422988
+    },
+    "user_1042_64": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.043359
+    },
+    "user_1042_65": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632705.044107
+    },
+    "user_1042_66": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.044877
+    },
+    "user_1042_67": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.045687
+    },
+    "user_1042_68": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.046632
+    },
+    "user_1042_69": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.04745
+    },
+    "user_1042_70": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.048299
+    },
+    "user_1042_71": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.0491278
+    },
+    "user_1042_72": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.050307
+    },
+    "user_1042_73": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.0515609
+    },
+    "user_1042_75": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.053586
+    },
+    "user_1042_77": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.055692
+    },
+    "user_1042_79": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.057965
+    },
+    "user_1042_80": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632705.059053
+    },
+    "user_1042_82": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.061022
+    },
+    "user_1042_83": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.061858
+    },
+    "user_1042_84": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.062918
+    },
+    "user_1042_85": {
+      "action_id": "discount_20",
+      "timestamp": 1775632705.064013
+    },
+    "user_1042_86": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.0647879
+    },
+    "user_1042_87": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.065633
+    },
+    "user_1042_88": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.066787
+    },
+    "user_1042_89": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.067612
+    },
+    "user_1042_91": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.06953
+    },
+    "user_1042_92": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.0708601
+    },
+    "user_1042_93": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.0716538
+    },
+    "user_1042_94": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.0727081
+    },
+    "user_1042_95": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.073783
+    },
+    "user_1042_96": {
+      "action_id": "fleet_rightsize",
+      "timestamp": 1775632705.074974
+    },
+    "user_1042_97": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.076011
+    },
+    "user_1042_98": {
+      "action_id": "fleet_rightsize",
+      "timestamp": 1775632705.0771048
+    },
+    "user_1042_99": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.0782368
+    },
+    "user_1042_100": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.0792792
+    },
+    "user_1042_101": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.0801542
+    },
+    "user_1042_102": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.0810869
+    },
+    "user_1042_103": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.082217
+    },
+    "user_1042_105": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632705.084499
+    },
+    "user_1042_106": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.085551
+    },
+    "user_1042_107": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.086654
+    },
+    "user_1042_108": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.087899
+    },
+    "user_1042_109": {
+      "action_id": "control_graceful_exit",
+      "timestamp": 1775632705.08878
+    },
+    "user_1042_110": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.08987
+    },
+    "user_1042_111": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.091032
+    },
+    "user_1042_113": {
+      "action_id": "discount_20",
+      "timestamp": 1775632705.0928268
+    },
+    "user_1042_114": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.093817
+    },
+    "user_1042_115": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.094733
+    },
+    "user_1042_116": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.096071
+    },
+    "user_1042_117": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.097014
+    },
+    "user_1042_118": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.0979688
+    },
+    "user_1042_119": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.098976
+    },
+    "user_1042_121": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.1011221
+    },
+    "user_1042_122": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.102122
+    },
+    "user_1042_123": {
+      "action_id": "discount_40",
+      "timestamp": 1775632705.103117
+    },
+    "user_1042_124": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632705.10411
+    },
+    "user_1042_125": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.1051211
+    },
+    "user_1042_126": {
+      "action_id": "discount_20",
+      "timestamp": 1775632705.106116
+    },
+    "user_1042_127": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.107172
+    },
+    "user_1042_128": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.1086211
+    },
+    "user_1042_129": {
+      "action_id": "discount_40",
+      "timestamp": 1775632705.109663
+    },
+    "user_1042_130": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.110702
+    },
+    "user_1042_131": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.1117089
+    },
+    "user_1042_133": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.113688
+    },
+    "user_1042_134": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.114709
+    },
+    "user_1042_135": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.115974
+    },
+    "user_1042_136": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.1170702
+    },
+    "user_1042_137": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.118218
+    },
+    "user_1042_138": {
+      "action_id": "discount_20",
+      "timestamp": 1775632705.119272
+    },
+    "user_1042_140": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.121392
+    },
+    "user_1042_141": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.122467
+    },
+    "user_1042_142": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.123689
+    },
+    "user_1042_143": {
+      "action_id": "discount_20",
+      "timestamp": 1775632705.1247842
+    },
+    "user_1042_144": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.125878
+    },
+    "user_1042_145": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.127349
+    },
+    "user_1042_146": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.1283891
+    },
+    "user_1042_148": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.130531
+    },
+    "user_1042_149": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.131619
+    },
+    "user_1042_150": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.132712
+    },
+    "user_1042_151": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.133835
+    },
+    "user_1042_152": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.1349492
+    },
+    "user_1042_153": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.136069
+    },
+    "user_1042_154": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.137175
+    },
+    "user_1042_155": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632705.13829
+    },
+    "user_1042_157": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.1409101
+    },
+    "user_1042_158": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.1420338
+    },
+    "user_1042_159": {
+      "action_id": "discount_40",
+      "timestamp": 1775632705.1433039
+    },
+    "user_1042_160": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.144475
+    },
+    "user_1042_161": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.145626
+    },
+    "user_1042_162": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.146828
+    },
+    "user_1042_163": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.148007
+    },
+    "user_1042_166": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.1515038
+    },
+    "user_1042_167": {
+      "action_id": "discount_40",
+      "timestamp": 1775632705.152662
+    },
+    "user_1042_168": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632705.1541052
+    },
+    "user_1042_169": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.155288
+    },
+    "user_1042_170": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.156694
+    },
+    "user_1042_172": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.158983
+    },
+    "user_1042_173": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.160129
+    },
+    "user_1042_174": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.16127
+    },
+    "user_1042_175": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.162456
+    },
+    "user_1042_176": {
+      "action_id": "discount_40",
+      "timestamp": 1775632705.163614
+    },
+    "user_1042_177": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632705.164772
+    },
+    "user_1042_178": {
+      "action_id": "discount_40",
+      "timestamp": 1775632705.165954
+    },
+    "user_1042_179": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.167149
+    },
+    "user_1042_180": {
+      "action_id": "discount_40",
+      "timestamp": 1775632705.1683378
+    },
+    "user_1042_181": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.169558
+    },
+    "user_1042_183": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.171987
+    },
+    "user_1042_184": {
+      "action_id": "discount_40",
+      "timestamp": 1775632705.173245
+    },
+    "user_1042_187": {
+      "action_id": "downgrade_basic",
+      "timestamp": 1775632705.1768682
+    },
+    "user_1042_188": {
+      "action_id": "route_optimization_demo",
+      "timestamp": 1775632705.17809
+    },
+    "user_1042_190": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.180782
+    },
+    "user_1042_191": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.1820118
+    },
+    "user_1042_192": {
+      "action_id": "discount_40",
+      "timestamp": 1775632705.183263
+    },
+    "user_1042_193": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.1845179
+    },
+    "user_1042_195": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.1870358
+    },
+    "user_1042_196": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.1886232
+    },
+    "user_1042_197": {
+      "action_id": "discount_40",
+      "timestamp": 1775632705.189871
+    },
+    "user_1042_198": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.191137
+    },
+    "user_1042_199": {
+      "action_id": "pause_plan",
+      "timestamp": 1775632705.192404
+    }
+  },
+  "discount_exposures": {
+    "user_1042_0": [],
+    "user_1042_1": [],
+    "user_1042_2": [
+      1775632704.987713
+    ],
+    "user_1042_3": [],
+    "user_1042_4": [],
+    "user_1042_5": [
+      1775632704.9890518
+    ],
+    "user_1042_6": [],
+    "user_1042_7": [],
+    "user_1042_8": [],
+    "user_1042_9": [],
+    "user_1042_10": [],
+    "user_1042_11": [],
+    "user_1042_12": [],
+    "user_1042_13": [],
+    "user_1042_14": [],
+    "user_1042_15": [],
+    "user_1042_16": [
+      1775632704.997761
+    ],
+    "user_1042_17": [],
+    "user_1042_18": [],
+    "user_1042_19": [],
+    "user_1042_20": [],
+    "user_1042_21": [],
+    "user_1042_22": [],
+    "user_1042_23": [
+      1775632705.003896
+    ],
+    "user_1042_24": [],
+    "user_1042_25": [],
+    "user_1042_26": [],
+    "user_1042_27": [],
+    "user_1042_28": [],
+    "user_1042_29": [],
+    "user_1042_30": [],
+    "user_1042_31": [
+      1775632705.009772
+    ],
+    "user_1042_32": [],
+    "user_1042_33": [],
+    "user_1042_34": [],
+    "user_1042_35": [],
+    "user_1042_36": [
+      1775632705.013786
+    ],
+    "user_1042_37": [],
+    "user_1042_38": [],
+    "user_1042_39": [],
+    "user_1042_40": [],
+    "user_1042_41": [],
+    "user_1042_42": [],
+    "user_1042_43": [],
+    "user_1042_44": [],
+    "user_1042_45": [],
+    "user_1042_46": [],
+    "user_1042_47": [],
+    "user_1042_48": [],
+    "user_1042_49": [],
+    "user_1042_50": [],
+    "user_1042_51": [],
+    "user_1042_52": [],
+    "user_1042_53": [],
+    "user_1042_54": [],
+    "user_1042_55": [],
+    "user_1042_56": [],
+    "user_1042_57": [],
+    "user_1042_58": [],
+    "user_1042_59": [
+      1775632705.039186
+    ],
+    "user_1042_60": [],
+    "user_1042_61": [],
+    "user_1042_62": [],
+    "user_1042_63": [],
+    "user_1042_64": [],
+    "user_1042_65": [],
+    "user_1042_66": [],
+    "user_1042_67": [],
+    "user_1042_68": [],
+    "user_1042_69": [],
+    "user_1042_70": [],
+    "user_1042_71": [],
+    "user_1042_72": [],
+    "user_1042_73": [],
+    "user_1042_74": [],
+    "user_1042_75": [],
+    "user_1042_76": [],
+    "user_1042_77": [],
+    "user_1042_78": [],
+    "user_1042_79": [],
+    "user_1042_80": [],
+    "user_1042_81": [],
+    "user_1042_82": [],
+    "user_1042_83": [],
+    "user_1042_84": [],
+    "user_1042_85": [
+      1775632705.064013
+    ],
+    "user_1042_86": [],
+    "user_1042_87": [],
+    "user_1042_88": [],
+    "user_1042_89": [],
+    "user_1042_90": [],
+    "user_1042_91": [],
+    "user_1042_92": [],
+    "user_1042_93": [],
+    "user_1042_94": [],
+    "user_1042_95": [],
+    "user_1042_96": [],
+    "user_1042_97": [],
+    "user_1042_98": [],
+    "user_1042_99": [],
+    "user_1042_100": [],
+    "user_1042_101": [],
+    "user_1042_102": [],
+    "user_1042_103": [],
+    "user_1042_104": [],
+    "user_1042_105": [],
+    "user_1042_106": [],
+    "user_1042_107": [],
+    "user_1042_108": [],
+    "user_1042_109": [],
+    "user_1042_110": [],
+    "user_1042_111": [],
+    "user_1042_112": [],
+    "user_1042_113": [
+      1775632705.0928268
+    ],
+    "user_1042_114": [],
+    "user_1042_115": [],
+    "user_1042_116": [],
+    "user_1042_117": [],
+    "user_1042_118": [],
+    "user_1042_119": [],
+    "user_1042_120": [],
+    "user_1042_121": [],
+    "user_1042_122": [],
+    "user_1042_123": [
+      1775632705.103117
+    ],
+    "user_1042_124": [],
+    "user_1042_125": [],
+    "user_1042_126": [
+      1775632705.106116
+    ],
+    "user_1042_127": [],
+    "user_1042_128": [],
+    "user_1042_129": [
+      1775632705.109663
+    ],
+    "user_1042_130": [],
+    "user_1042_131": [],
+    "user_1042_132": [],
+    "user_1042_133": [],
+    "user_1042_134": [],
+    "user_1042_135": [],
+    "user_1042_136": [],
+    "user_1042_137": [],
+    "user_1042_138": [
+      1775632705.119272
+    ],
+    "user_1042_139": [],
+    "user_1042_140": [],
+    "user_1042_141": [],
+    "user_1042_142": [],
+    "user_1042_143": [
+      1775632705.1247842
+    ],
+    "user_1042_144": [],
+    "user_1042_145": [],
+    "user_1042_146": [],
+    "user_1042_147": [],
+    "user_1042_148": [],
+    "user_1042_149": [],
+    "user_1042_150": [],
+    "user_1042_151": [],
+    "user_1042_152": [],
+    "user_1042_153": [],
+    "user_1042_154": [],
+    "user_1042_155": [],
+    "user_1042_156": [],
+    "user_1042_157": [],
+    "user_1042_158": [],
+    "user_1042_159": [
+      1775632705.1433039
+    ],
+    "user_1042_160": [],
+    "user_1042_161": [],
+    "user_1042_162": [],
+    "user_1042_163": [],
+    "user_1042_164": [],
+    "user_1042_165": [],
+    "user_1042_166": [],
+    "user_1042_167": [
+      1775632705.152662
+    ],
+    "user_1042_168": [],
+    "user_1042_169": [],
+    "user_1042_170": [],
+    "user_1042_171": [],
+    "user_1042_172": [],
+    "user_1042_173": [],
+    "user_1042_174": [],
+    "user_1042_175": [],
+    "user_1042_176": [
+      1775632705.163614
+    ],
+    "user_1042_177": [],
+    "user_1042_178": [
+      1775632705.165954
+    ],
+    "user_1042_179": [],
+    "user_1042_180": [
+      1775632705.1683378
+    ],
+    "user_1042_181": [],
+    "user_1042_182": [],
+    "user_1042_183": [],
+    "user_1042_184": [
+      1775632705.173245
+    ],
+    "user_1042_185": [],
+    "user_1042_186": [],
+    "user_1042_187": [],
+    "user_1042_188": [],
+    "user_1042_189": [],
+    "user_1042_190": [],
+    "user_1042_191": [],
+    "user_1042_192": [
+      1775632705.183263
+    ],
+    "user_1042_193": [],
+    "user_1042_194": [],
+    "user_1042_195": [],
+    "user_1042_196": [],
+    "user_1042_197": [
+      1775632705.189871
+    ],
+    "user_1042_198": [],
+    "user_1042_199": []
+  },
+  "metrics": {
+    "decisions": 200,
+    "outcomes": 200,
+    "fallbacks": 0,
+    "blocked_actions_total": 104
+  },
+  "strategy_pool": {
+    "pause_plan": {
+      "s0": {
+        "dims": {
+          "message_angle": "flexibility_relief",
+          "proof_style": "similar_user_story",
+          "personalization": "contextual",
+          "contextual_grounding": "seasonal_demand",
+          "creative_treatment": "plain_note",
+          "friction_reducer": "one_click_pause"
+        },
+        "mean_score": 0.0,
+        "score_std": 0.0,
+        "n_evals": 0,
+        "generation": 0,
+        "source": "default"
+      }
+    },
+    "downgrade_basic": {
+      "s0": {
+        "dims": {
+          "message_angle": "cost_control",
+          "proof_style": "roi_calculation",
+          "personalization": "contextual",
+          "contextual_grounding": "pricing_context",
+          "creative_treatment": "options_table",
+          "friction_reducer": "instant_downgrade"
+        },
+        "mean_score": 0.0,
+        "score_std": 0.0,
+        "n_evals": 0,
+        "generation": 0,
+        "source": "default"
+      }
+    },
+    "discount_20": {
+      "s0": {
+        "dims": {
+          "message_angle": "cost_control",
+          "proof_style": "metric_snapshot",
+          "personalization": "contextual",
+          "contextual_grounding": "pricing_context",
+          "creative_treatment": "plain_note",
+          "friction_reducer": "none"
+        },
+        "mean_score": 0.0,
+        "score_std": 0.0,
+        "n_evals": 0,
+        "generation": 0,
+        "source": "default"
+      }
+    },
+    "discount_40": {
+      "s0": {
+        "dims": {
+          "message_angle": "cost_control",
+          "proof_style": "roi_calculation",
+          "personalization": "contextual",
+          "contextual_grounding": "cost_per_mile",
+          "creative_treatment": "cost_analysis",
+          "friction_reducer": "none"
+        },
+        "mean_score": 0.0,
+        "score_std": 0.0,
+        "n_evals": 0,
+        "generation": 0,
+        "source": "default"
+      }
+    },
+    "route_optimization_demo": {
+      "s0": {
+        "dims": {
+          "message_angle": "efficiency_gain",
+          "proof_style": "before_after",
+          "personalization": "behavioral",
+          "contextual_grounding": "route_efficiency",
+          "creative_treatment": "optimization_replay",
+          "friction_reducer": "callback_scheduling"
+        },
+        "mean_score": 0.0,
+        "score_std": 0.0,
+        "n_evals": 0,
+        "generation": 0,
+        "source": "default"
+      }
+    },
+    "fleet_rightsize": {
+      "s0": {
+        "dims": {
+          "message_angle": "cost_control",
+          "proof_style": "metric_snapshot",
+          "personalization": "behavioral",
+          "contextual_grounding": "fleet_utilization",
+          "creative_treatment": "usage_summary",
+          "friction_reducer": "dedicated_onboarding"
+        },
+        "mean_score": 0.0,
+        "score_std": 0.0,
+        "n_evals": 0,
+        "generation": 0,
+        "source": "default"
+      }
+    },
+    "control_graceful_exit": {
+      "s0": {
+        "dims": {
+          "message_angle": "empathetic_exit",
+          "proof_style": "none",
+          "personalization": "generic",
+          "contextual_grounding": "generic",
+          "creative_treatment": "plain_note",
+          "friction_reducer": "none"
+        },
+        "mean_score": 0.0,
+        "score_std": 0.0,
+        "n_evals": 0,
+        "generation": 0,
+        "source": "default"
+      }
+    }
+  },
+  "strategy_arms": {
+    "pause_plan:s0": {
+      "alpha": 1.0,
+      "beta": 1.0
+    },
+    "downgrade_basic:s0": {
+      "alpha": 1.0,
+      "beta": 1.0
+    },
+    "discount_20:s0": {
+      "alpha": 1.0,
+      "beta": 1.0
+    },
+    "discount_40:s0": {
+      "alpha": 1.0,
+      "beta": 1.0
+    },
+    "route_optimization_demo:s0": {
+      "alpha": 1.0,
+      "beta": 1.0
+    },
+    "fleet_rightsize:s0": {
+      "alpha": 1.0,
+      "beta": 1.0
+    },
+    "control_graceful_exit:s0": {
+      "alpha": 1.0,
+      "beta": 1.0
+    }
+  },
+  "generation_meta": {
+    "last_generation": 0,
+    "next_strategy_id": 1,
+    "stagnation_count": 4,
+    "stagnation_threshold": 5,
+    "total_generations": 0
+  }
+}

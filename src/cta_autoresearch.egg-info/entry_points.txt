@@ -1,2 +1,8 @@
 [console_scripts]
+cta-harness = cta_autoresearch.harness:main
+cta-lab = cta_autoresearch.lab_cli:main
+cta-optimize = cta_autoresearch.policy_optimizer:main
 cta-research = cta_autoresearch.cli:main
+cta-research-lab = cta_autoresearch.lab_cli:main
+cta-serve = cta_autoresearch.server:main
+cta-user-model = cta_autoresearch.user_model:main
