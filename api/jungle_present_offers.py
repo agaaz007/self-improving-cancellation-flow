@@ -1,10 +1,11 @@
-"""Vercel serverless function: present_offers (Jungle AI / edtech).
+"""Vercel serverless function: Jungle AI present_offers.
 
-Receives transcript + user_id from 11 Labs agent, runs reason-based routing
-or Thompson-sampling bandit to pick the best retention action, then
-optionally personalizes the UI text via LLM.
+Uses the fully trained autoresearch bandit policy (300 decisions, 54 generations)
+by default. Reason-based routing available as fallback, derived from trained
+context arm posteriors.
 
-Flow: extract reason → route to ACTION → LLM personalizes text →
+Flow: bandit picks ACTION → strategy_pool gives best DIMS →
+      LLM writes personalized text within those constraints →
       falls back to fixed text if no API key or LLM fails.
 """
 from __future__ import annotations
@@ -50,25 +51,26 @@ _UI_JUNGLE = {
 }
 
 # ---------------------------------------------------------------------------
-# Reason-based flow routing — Jungle AI (edtech)
-#   price → escalating discounts (20% if open, 40% if frustrated)
-#   graduating → empathic exit (life event, unsaveable)
-#   break → pause (natural fit — they'll be back)
-#   quality_bug → concierge recovery + empathy
-#   feature_gap → feature value recap (show what they're missing)
-#   competition → targeted discount + value recap
-#   billing_confusion → billing clarity
-#   other → pause (safe default)
+# Reason-based routing fallback — derived from trained context arm posteriors
+# These reflect what the bandit LEARNED works best per cancel reason:
+#   price → pause (75% win rate — pause beats discounts surprisingly)
+#   graduating → downgrade lite (74.5% — keep them on lite, they may return)
+#   break → pause (67.9% — natural fit for seasonal breaks)
+#   quality_bug → feature value recap (81.2% — show value they missed)
+#   feature_gap → targeted discount 40 (78.9% — big discount to retain)
+#   competition → targeted discount 40 (72.2% — price war, match value)
+#   billing_confusion → feature value recap (78.6% — reframe value first)
+#   other → concierge recovery (80.8% — generic → human touch works best)
 # ---------------------------------------------------------------------------
 _REASON_TO_ACTION_JUNGLE = {
-    "price":             "targeted_discount_40",    # price-sensitive → strong discount
-    "graduating":        "control_empathic_exit",   # life event — let them go gracefully
-    "break":             "pause_plan_relief",       # seasonal break → pause is perfect
-    "quality_bug":       "concierge_recovery",      # bugs → empathize + guided support
-    "feature_gap":       "feature_value_recap",     # missing features → show what they haven't tried
-    "competition":       "targeted_discount_40",    # switching to competitor → discount to retain
-    "billing_confusion": "billing_clarity_reset",   # billing issue → clarify
-    "other":             "pause_plan_relief",       # default → soft pause offer
+    "price":             "pause_plan_relief",       # 75% — pause beats discounts for price
+    "graduating":        "downgrade_lite_switch",   # 74.5% — keep on lite, they may come back
+    "break":             "pause_plan_relief",       # 67.9% — natural fit for seasonal breaks
+    "quality_bug":       "feature_value_recap",     # 81.2% — show value they missed + empathize
+    "feature_gap":       "targeted_discount_40",    # 78.9% — big discount to stay while features ship
+    "competition":       "targeted_discount_40",    # 72.2% — price war, match value
+    "billing_confusion": "feature_value_recap",     # 78.6% — reframe value before fixing billing
+    "other":             "concierge_recovery",      # 80.8% — generic → human touch works best
 }
 
 # ---------------------------------------------------------------------------
@@ -239,7 +241,8 @@ class handler(BaseHTTPRequestHandler):
         _init()
 
         personalize = str(body.get("personalize", "true")).lower() in ("true", "1", "yes")
-        use_bandit = str(body.get("use_bandit", "false")).lower() in ("true", "1", "yes")
+        # Default to bandit — trained policy is mature (300 decisions, 54 generations)
+        use_bandit = str(body.get("use_bandit", "true")).lower() in ("true", "1", "yes")
 
         # 1. Extract transcript features (empty transcript = silent churn)
         transcript_text = transcript if isinstance(transcript, str) else json.dumps(transcript)
@@ -292,7 +295,7 @@ class handler(BaseHTTPRequestHandler):
         ui = None
 
         if personalize:
-            strategy_dims = _best_strategy_dims(action_id) if use_bandit else None
+            strategy_dims = _best_strategy_dims(action_id)
             ui = _personalize_ui(action_id, transcript, extraction, strategy_dims or {})
             if ui:
                 personalized = True
