@@ -34,6 +34,7 @@ from cta_autoresearch.cancel_policy import (
     TranscriptExtractionV1,
 )
 from cta_autoresearch.clients import load_client
+from cta_autoresearch import redis_state
 
 # ---------------------------------------------------------------------------
 # Fixed UI data per action (Jungle AI — edtech)
@@ -89,13 +90,17 @@ def _init():
 
     client = load_client(_client_id)
 
-    # Copy bundled policy_state.json to /tmp where the runtime can write
+    # Load policy: Redis (live posteriors) → bundled JSON (fallback)
     tmp_dir = Path("/tmp/bandit_policy_jungle")
     tmp_dir.mkdir(parents=True, exist_ok=True)
-    bundled = Path(__file__).parent / "jungle_policy_state.json"
     dst = tmp_dir / "policy_state.json"
-    if bundled.exists():
-        shutil.copy2(str(bundled), str(dst))
+    redis_policy = redis_state.get_policy(_client_id) if redis_state.available() else None
+    if redis_policy:
+        dst.write_text(json.dumps(redis_policy))
+    else:
+        bundled = Path(__file__).parent / "jungle_policy_state.json"
+        if bundled.exists():
+            shutil.copy2(str(bundled), str(dst))
 
     _runtime = CancelPolicyRuntime(
         root=str(tmp_dir),
@@ -288,6 +293,22 @@ class handler(BaseHTTPRequestHandler):
             exploration_flag = False
             policy_version = "reason_routing_v1"
             routing_mode = "reason"
+
+        # Log decision to Redis for outcome tracking
+        if redis_state.available():
+            try:
+                redis_state.save_decision(_client_id, {
+                    "decision_id": decision_id,
+                    "action_id": action_id,
+                    "primary_reason": extraction.primary_reason,
+                    "plan_tier": str(metadata.get("plan_tier") or "unknown").strip().lower(),
+                    "user_id": user_id,
+                    "routing_mode": routing_mode,
+                    "exploration_flag": exploration_flag,
+                    "timestamp": time.time(),
+                })
+            except Exception:
+                pass  # non-critical
 
         # 3. Try LLM personalization, fall back to fixed UI
         personalized = False

@@ -1,10 +1,17 @@
 {
   "builds": [
     {"src": "api/zeo_present_offers.py", "use": "@vercel/python"},
-    {"src": "api/jungle_present_offers.py", "use": "@vercel/python"}
+    {"src": "api/jungle_present_offers.py", "use": "@vercel/python"},
+    {"src": "api/record_outcome.py", "use": "@vercel/python"},
+    {"src": "api/dashboard_data.py", "use": "@vercel/python"},
+    {"src": "api/dashboard.py", "use": "@vercel/python"}
   ],
   "routes": [
     {"src": "/api/zeo_present_offers", "dest": "/api/zeo_present_offers.py"},
-    {"src": "/api/jungle_present_offers", "dest": "/api/jungle_present_offers.py"}
+    {"src": "/api/jungle_present_offers", "dest": "/api/jungle_present_offers.py"},
+    {"src": "/api/record_outcome", "dest": "/api/record_outcome.py"},
+    {"src": "/api/dashboard_data", "dest": "/api/dashboard_data.py"},
+    {"src": "/api/dashboard", "dest": "/api/dashboard.py"},
+    {"src": "/monitor", "dest": "/api/dashboard.py"}
   ]
 }

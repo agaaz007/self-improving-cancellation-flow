@@ -82,6 +82,11 @@ tr:hover td{background:var(--surface2)}
   </header>
 
   <div class="refresh-bar">
+    <span style="color:var(--text2);font-size:12px">Client:</span>
+    <select id="client-select">
+      <option value="zeo_auto">Zeo Auto</option>
+      <option value="jungle_ai">Jungle AI</option>
+    </select>
     <span style="color:var(--text2);font-size:12px">Auto-refresh:</span>
     <select id="refresh-interval">
       <option value="0">Off</option>
@@ -174,6 +179,7 @@ tr:hover td{background:var(--surface2)}
 const API = window.location.origin;
 let refreshTimer = null;
 
+function getClient(){ return document.getElementById('client-select').value }
 function fmt(n, d=4){ return typeof n==='number' ? n.toFixed(d) : '--' }
 function pct(n){ return typeof n==='number' ? (n*100).toFixed(1)+'%' : '--' }
 function ts(t){ if(!t)return '--'; const d=new Date(t*1000); return d.toLocaleTimeString() }
@@ -186,21 +192,21 @@ function heatColor(mean){
   return '#ef4444';
 }
 
-async function fetchJSON(path){
-  try{ const r=await fetch(API+path); return await r.json(); }
-  catch(e){ console.error(path,e); return null; }
+async function fetchJSON(view){
+  try{ const r=await fetch(`${API}/api/dashboard_data?client=${getClient()}&view=${view}`); return await r.json(); }
+  catch(e){ console.error(view,e); return null; }
 }
 
 async function refreshAll(){
   const [health,arms,replay,strategies,gen,decisions,outcomes,ctxArms] = await Promise.all([
-    fetchJSON('/health'),
-    fetchJSON('/api/arms'),
-    fetchJSON('/api/replay'),
-    fetchJSON('/api/strategies'),
-    fetchJSON('/api/generation'),
-    fetchJSON('/api/recent-decisions'),
-    fetchJSON('/api/recent-outcomes'),
-    fetchJSON('/api/context-arms'),
+    fetchJSON('health'),
+    fetchJSON('arms'),
+    fetchJSON('replay'),
+    fetchJSON('strategies'),
+    fetchJSON('generation'),
+    fetchJSON('recent-decisions'),
+    fetchJSON('recent-outcomes'),
+    fetchJSON('context-arms'),
   ]);
   document.getElementById('last-fetch').textContent = 'fetched '+new Date().toLocaleTimeString();
 
@@ -409,6 +415,7 @@ function startRefresh(){
   if(ms>0) refreshTimer=setInterval(refreshAll,ms);
 }
 document.getElementById('refresh-interval').addEventListener('change',startRefresh);
+document.getElementById('client-select').addEventListener('change',refreshAll);
 
 // Boot
 refreshAll();
