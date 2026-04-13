@@ -161,8 +161,32 @@ tr:hover td{background:var(--surface2)}
     </div>
   </div>
 
-  <!-- Recent activity feed -->
-  <div class="section-label">Recent Activity</div>
+  <!-- Decision Trail — full transparency -->
+  <div class="section-label">Decision Trail</div>
+  <div class="panel">
+    <h2>Every Decision &rarr; Offer Shown &rarr; Outcome</h2>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr>
+          <th>Time</th>
+          <th>Decision ID</th>
+          <th>Action</th>
+          <th>Offer</th>
+          <th>CTA Shown</th>
+          <th>Reason</th>
+          <th>Plan</th>
+          <th>Mode</th>
+          <th>LLM</th>
+          <th>Outcome</th>
+          <th>Reward</th>
+        </tr></thead>
+        <tbody id="trail-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Recent activity feed (compact) -->
+  <div class="section-label">Recent Activity (Raw)</div>
   <div class="grid-2">
     <div class="panel">
       <h2>Recent Decisions</h2>
@@ -218,6 +242,7 @@ async function refreshAll(){
   if(decisions) renderDecisions(decisions);
   if(outcomes) renderOutcomes(outcomes);
   if(ctxArms) renderHeatmap(ctxArms);
+  if(decisions||outcomes) renderTrail(decisions||[],outcomes||[]);
 }
 
 function renderHealth(h){
@@ -373,6 +398,47 @@ function renderGeneration(g){
   `;
 }
 
+function renderTrail(decisions,outcomes){
+  const tbody=document.getElementById('trail-body');
+  if(!decisions||!decisions.length){tbody.innerHTML='<tr><td colspan="11" style="color:var(--text2);text-align:center;padding:20px">No decisions yet</td></tr>';return}
+  // Index outcomes by decision_id for fast lookup
+  const outcomeMap={};
+  for(const o of (outcomes||[])) if(o.decision_id) outcomeMap[o.decision_id]=o;
+
+  tbody.innerHTML=decisions.slice(0,50).map(d=>{
+    const o=outcomeMap[d.decision_id];
+    const modeTag=d.routing_mode==='bandit'
+      ?'<span class="tag explore">bandit</span>'
+      :'<span class="tag exploit">reason</span>';
+    const llmTag=d.personalized
+      ?'<span style="color:var(--green);font-size:11px">LLM</span>'
+      :'<span style="color:var(--text2);font-size:11px">fixed</span>';
+    const outcomeCell=o
+      ?(o.saved_flag
+        ?'<span style="color:var(--green);font-weight:600">SAVED</span>'
+        :'<span style="color:var(--red);font-weight:600">LOST</span>')
+      :'<span style="color:var(--text2)">pending</span>';
+    const rewardCell=o?`<span style="color:${o.reward>=0.5?'var(--green)':'var(--red)'}">${fmt(o.reward,2)}</span>`:'—';
+    const offerKind=d.offer_kind||'—';
+    const ctaText=d.cta_text||'—';
+    const headerText=d.header_title||'—';
+
+    return `<tr>
+      <td>${ts(d.timestamp)}</td>
+      <td style="font-size:10px;color:var(--text2)">${d.decision_id||''}</td>
+      <td style="font-family:var(--sans);font-weight:500">${(d.action_id||'').replace(/_/g,' ')}</td>
+      <td><span class="tag">${offerKind}</span></td>
+      <td style="font-family:var(--sans);font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${ctaText}">${ctaText}</td>
+      <td>${d.primary_reason||''}</td>
+      <td>${d.plan_tier||''}</td>
+      <td>${modeTag}</td>
+      <td>${llmTag}</td>
+      <td>${outcomeCell}</td>
+      <td>${rewardCell}</td>
+    </tr>`;
+  }).join('');
+}
+
 function renderDecisions(list){
   const feed=document.getElementById('decisions-feed');
   if(!list||!list.length){feed.innerHTML='<div style="color:var(--text2);padding:12px">No decisions yet</div>';return}
@@ -380,11 +446,13 @@ function renderDecisions(list){
     const tag=d.exploration_flag?'<span class="tag explore">explore</span>':
               d.holdout_flag?'<span class="tag holdout">holdout</span>':
               '<span class="tag exploit">exploit</span>';
+    const cta=d.cta_text?` · <span style="color:var(--cyan)">"${d.cta_text}"</span>`:'';
     return `<div class="feed-row">
       <span class="feed-time">${ts(d.timestamp)}</span>
       <span>${(d.action_id||'').replace(/_/g,' ')}</span>
       ${tag}
-      <span style="color:var(--text2)">${d.primary_reason||''} &middot; ${d.plan_tier||''}</span>
+      <span style="color:var(--text2)">${d.primary_reason||''} · ${d.plan_tier||''}</span>
+      ${cta}
     </div>`;
   }).join('');
 }

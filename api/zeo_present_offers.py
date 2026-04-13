@@ -331,22 +331,6 @@ class handler(BaseHTTPRequestHandler):
             policy_version = "reason_routing_v1"
             routing_mode = "reason"
 
-        # Log decision to Redis for outcome tracking
-        if redis_state.available():
-            try:
-                redis_state.save_decision(_client_id, {
-                    "decision_id": decision_id,
-                    "action_id": action_id,
-                    "primary_reason": extraction.primary_reason,
-                    "plan_tier": str(metadata.get("plan_tier") or "unknown").strip().lower(),
-                    "user_id": user_id,
-                    "routing_mode": routing_mode,
-                    "exploration_flag": exploration_flag,
-                    "timestamp": time.time(),
-                })
-            except Exception:
-                pass  # non-critical
-
         # 3. Try LLM personalization, fall back to fixed UI
         personalized = False
         strategy_dims = None
@@ -360,6 +344,26 @@ class handler(BaseHTTPRequestHandler):
 
         if ui is None:
             ui = _action_to_ui(action_id)
+
+        # Log decision to Redis AFTER UI is built so we capture what was shown
+        if redis_state.available():
+            try:
+                redis_state.save_decision(_client_id, {
+                    "decision_id": decision_id,
+                    "action_id": action_id,
+                    "primary_reason": extraction.primary_reason,
+                    "plan_tier": str(metadata.get("plan_tier") or "unknown").strip().lower(),
+                    "user_id": user_id,
+                    "routing_mode": routing_mode,
+                    "exploration_flag": exploration_flag,
+                    "personalized": personalized,
+                    "offer_kind": ui.get("offer_kind", ""),
+                    "header_title": ui.get("header_title", ""),
+                    "cta_text": ui.get("cta_button_text", ""),
+                    "timestamp": time.time(),
+                })
+            except Exception:
+                pass  # non-critical
 
         self._respond(200, {
             "decision_id": decision_id,
