@@ -216,8 +216,11 @@ Write JSON with exactly these keys:
 - body_text: 1-2 sentences, personalized to their situation, uses the contextual_grounding
 - cta_button_text: 2-5 words, action-oriented, matches the offer type
 
+The default CTA for this action is: "{fallback.get('cta', '')}"
+
 Rules:
 - Do NOT change the offer type. If the action is a pause, the CTA must be about pausing.
+- The cta_button_text MUST include the specific offer value (e.g. "50% off", "20% off", "free week"). Never generalize to just "discount" or "deal".
 - If frustration is high (>0.6), be more empathetic and less salesy.
 - Keep it short. This is a UI card, not an email.
 - Return ONLY valid JSON, no markdown."""
