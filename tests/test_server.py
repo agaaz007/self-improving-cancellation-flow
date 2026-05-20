@@ -19,6 +19,12 @@ def _make_state_dir(tmp_path: Path) -> Path:
     return state_dir
 
 
+def _make_gbrain_memory_path(tmp_path: Path) -> Path:
+    memory_path = tmp_path / "gbrain_memory.json"
+    os.environ["GBRAIN_MEMORY_PATH"] = str(memory_path)
+    return memory_path
+
+
 def _reset_server():
     import cta_autoresearch.server as srv
     srv._runtime = None
@@ -30,6 +36,7 @@ def _reset_server():
 @pytest.fixture(autouse=True)
 def _setup(tmp_path):
     _make_state_dir(tmp_path)
+    _make_gbrain_memory_path(tmp_path)
     _reset_server()
     yield
     _reset_server()
@@ -185,3 +192,50 @@ def test_dashboard_api_generation():
     assert resp.status_code == 200
     data = resp.json()
     assert "config" in data
+
+
+
+def test_gbrain_memory_endpoint_seeds_visible_categories():
+    client = _client()
+    resp = client.get("/api/gbrain_memory?client=jungle_ai")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["client_id"] == "jungle_ai"
+    assert "winning_lesson" in data["by_category"]
+    assert "repeated_failure" in data["by_category"]
+    assert data["counts"]["blocked_strategy"] == 1
+
+
+def test_gbrain_memory_endpoint_saves_and_archives():
+    client = _client()
+    resp = client.post("/api/gbrain_memory", json={
+        "client_id": "jungle_ai",
+        "memory": {
+            "category": "winning_lesson",
+            "title": "Usage proof parent",
+            "lesson": "Start from concrete usage proof before asking for payment.",
+            "module_id": "ux_layout",
+            "tags": "proof,usage",
+        },
+    })
+    assert resp.status_code == 200
+    data = resp.json()
+    created = next(item for item in data["items"] if item["title"] == "Usage proof parent")
+    assert created["tags"] == ["proof", "usage"]
+
+    resp = client.post("/api/gbrain-memory", json={
+        "client_id": "jungle_ai",
+        "operation": "archive",
+        "id": created["id"],
+    })
+    assert resp.status_code == 200
+    data = resp.json()
+    assert created["id"] not in {item["id"] for item in data["items"]}
+
+
+def test_gbrain_memory_page_served():
+    client = _client()
+    resp = client.get("/gbrain-memory")
+    assert resp.status_code == 200
+    assert "What the system has learned" in resp.text
+    assert "/api/gbrain_memory" in resp.text

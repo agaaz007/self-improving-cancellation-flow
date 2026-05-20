@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>What the system has learned</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#f7f6f2;--surface:#fffdf8;--surface2:#eeebe3;--line:#dcd6ca;
+  --text:#1d242b;--muted:#69727a;--accent:#2f6d68;--accent2:#9a5a36;
+  --green:#1f7f59;--red:#b7443e;--amber:#a36b13;--blue:#2d6377;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+}
+body{margin:0;background:linear-gradient(180deg,#fbfaf6 0%,var(--bg) 48%,#ece8df 100%);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5}
+a{color:var(--accent);text-decoration:none}
+button,input,select,textarea{font:inherit}
+.shell{max-width:1440px;margin:0 auto;padding:18px 20px 40px}
+.topbar{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:18px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent2);margin-bottom:5px}
+h1{margin:0;font-size:28px;line-height:1.05;letter-spacing:-.03em;font-weight:700}
+.subtitle{color:var(--muted);max-width:780px;margin:8px 0 0;font-size:13px}
+.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.toolbar{display:flex;align-items:center;gap:10px;margin:18px 0;flex-wrap:wrap}
+.toolbar label{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.select,.input,.textarea{background:var(--surface);border:1px solid var(--line);border-radius:6px;color:var(--text);padding:8px 10px;outline:none}
+.select:focus,.input:focus,.textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,109,104,.12)}
+.button{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:6px;padding:8px 11px;cursor:pointer;transition:transform .16s ease,border-color .16s ease,background .16s ease}
+.button:hover{border-color:var(--accent)}
+.button:active{transform:translateY(1px)}
+.button.primary{background:var(--accent);border-color:var(--accent);color:#fffdf8}
+.button.danger{color:var(--red)}
+.button:disabled{cursor:not-allowed;opacity:.55}
+.meta-line{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.status{min-height:20px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.status.error{color:var(--red)}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:18px;align-items:start}
+.memory-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.bucket{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;min-height:220px}
+.bucket-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}
+.bucket-title{font-size:13px;font-weight:700;letter-spacing:-.01em}
+.bucket-desc{font-size:12px;color:var(--muted);margin-top:3px}
+.count{font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--surface2);border-radius:999px;padding:3px 7px}
+.card{border-top:1px solid var(--line);padding:11px 0 0;margin-top:11px}
+.card:first-of-type{border-top:0;margin-top:0;padding-top:0}
+.card h3{font-size:14px;line-height:1.25;margin:0 0 6px}
+.lesson{color:var(--text);font-size:13px;margin:0 0 8px}
+.evidence{color:var(--muted);font-size:12px;margin:0 0 8px}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0}
+.chip{font-family:var(--mono);font-size:10px;border-radius:999px;background:var(--surface2);color:var(--muted);padding:2px 6px}
+.chip.promoted{background:rgba(31,127,89,.13);color:var(--green)}
+.chip.blocked{background:rgba(183,68,62,.12);color:var(--red)}
+.chip.stale{background:rgba(163,107,19,.14);color:var(--amber)}
+.chip.contradicted{background:rgba(45,99,119,.13);color:var(--blue)}
+.card-footer{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:8px}
+.small{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.link-button{border:0;background:transparent;color:var(--accent);padding:0;cursor:pointer;font-family:var(--mono);font-size:11px}
+.empty{border:1px dashed var(--line);background:var(--surface2);border-radius:7px;padding:14px;color:var(--muted);font-size:12px}
+.editor{position:sticky;top:14px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:15px}
+.editor h2{margin:0 0 4px;font-size:15px}
+.editor p{margin:0 0 14px;color:var(--muted);font-size:12px}
+.field{display:grid;gap:5px;margin-bottom:11px}
+.field label{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.textarea{min-height:76px;resize:vertical}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.footer-actions{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:14px}
+.skeleton{height:96px;border-radius:8px;background:linear-gradient(90deg,var(--surface2),#f7f3eb,var(--surface2));background-size:220% 100%;animation:shimmer 1.5s ease infinite}
+@keyframes shimmer{0%{background-position:120% 0}100%{background-position:-120% 0}}
+@media(max-width:1100px){.layout{grid-template-columns:1fr}.editor{position:static}.memory-grid{grid-template-columns:1fr}}
+@media(max-width:640px){.topbar{display:block}.actions{justify-content:flex-start;margin-top:12px}.form-row{grid-template-columns:1fr}.shell{padding:14px}.memory-grid{gap:10px}}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">GBrain memory</div>
+      <h1>What the system has learned</h1>
+      <p class="subtitle">Editable lessons from judge feedback, failed variants, promoted strategies, and blocked patterns. This is the working memory the next generation loop can read before producing new paywall variants.</p>
+    </div>
+    <div class="actions">
+      <a class="button" href="/monitor">Command center</a>
+      <button class="button" id="new-button" type="button">New memory</button>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <label for="client-select">Client</label>
+    <select class="select" id="client-select">
+      <option value="jungle_ai" selected>Jungle AI</option>
+      <option value="zeo_auto">Zeo Auto</option>
+    </select>
+    <button class="button" id="refresh-button" type="button">Refresh</button>
+    <span class="meta-line" id="memory-meta">Loading memory...</span>
+  </div>
+
+  <main class="layout">
+    <section>
+      <div class="status" id="status"></div>
+      <div class="memory-grid" id="memory-grid">
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+      </div>
+    </section>
+
+    <aside class="editor">
+      <h2 id="editor-title">Add or edit memory</h2>
+      <p>Keep this sharp: one lesson, one evidence trail, one recommended generator behavior.</p>
+      <form id="memory-form">
+        <input type="hidden" id="memory-id"/>
+        <div class="form-row">
+          <div class="field">
+            <label for="category">Category</label>
+            <select class="select" id="category" required></select>
+          </div>
+          <div class="field">
+            <label for="status-field">Status</label>
+            <select class="select" id="status-field">
+              <option value="active">Active</option>
+              <option value="promoted">Promoted</option>
+              <option value="blocked">Blocked</option>
+              <option value="contradicted">Contradicted</option>
+              <option value="stale">Stale</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="title">Title</label>
+          <input class="input" id="title" placeholder="Progress proof beats discount copy" required/>
+        </div>
+        <div class="field">
+          <label for="lesson">Lesson</label>
+          <textarea class="textarea" id="lesson" placeholder="What should the generator remember?" required></textarea>
+        </div>
+        <div class="field">
+          <label for="evidence">Evidence</label>
+          <textarea class="textarea" id="evidence" placeholder="What judge verdicts, runs, or outcomes support this?"></textarea>
+        </div>
+        <div class="field">
+          <label for="recommendation">Generator recommendation</label>
+          <textarea class="textarea" id="recommendation" placeholder="How should the next variant change because of this?"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="module-id">Module</label>
+            <input class="input" id="module-id" placeholder="pricing_discounting"/>
+          </div>
+          <div class="field">
+            <label for="strategy-id">Strategy</label>
+            <input class="input" id="strategy-id" placeholder="strategy_42"/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="confidence">Confidence</label>
+            <input class="input" id="confidence" min="0" max="1" step="0.01" type="number" value="0.65"/>
+          </div>
+          <div class="field">
+            <label for="impact">Impact</label>
+            <input class="input" id="impact" min="0" max="1" step="0.01" type="number" value="0.50"/>
+          </div>
+        </div>
+        <div class="field">
+          <label for="tags">Tags</label>
+          <input class="input" id="tags" placeholder="trust, progress, guardrail"/>
+        </div>
+        <div class="footer-actions">
+          <button class="button danger" id="archive-button" type="button" disabled>Archive</button>
+          <button class="button primary" type="submit">Save memory</button>
+        </div>
+      </form>
+    </aside>
+  </main>
+</div>
+
+<script>
+const CATEGORY_ORDER = [
+  'winning_lesson',
+  'repeated_failure',
+  'contradicted_memory',
+  'stale_assumption',
+  'promoted_strategy',
+  'blocked_strategy'
+];
+const FALLBACK_CATEGORIES = {
+  winning_lesson:{label:'Winning lessons',description:'Patterns the system should actively reuse.'},
+  repeated_failure:{label:'Repeated failures',description:'Mistakes that keep showing up across variants or judges.'},
+  contradicted_memory:{label:'Contradicted memories',description:'Lessons that now conflict with newer evidence.'},
+  stale_assumption:{label:'Stale assumptions',description:'Old beliefs that need retesting before use.'},
+  promoted_strategy:{label:'Promoted strategies',description:'Strategies approved for reuse or rollout.'},
+  blocked_strategy:{label:'Blocked strategies',description:'Strategies that should not be generated or shipped.'}
+};
+const $ = (id) => document.getElementById(id);
+let currentData = {categories:FALLBACK_CATEGORIES,by_category:{},items:[]};
+let selectedMemory = null;
+
+function escapeHTML(value){
+  return String(value ?? '').replace(/[&<>"']/g,(char)=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[char]));
+}
+
+function fmtTime(ts){
+  if(!ts) return '--';
+  return new Date(Number(ts) * 1000).toLocaleString();
+}
+
+function getClient(){
+  return $('client-select').value || 'jungle_ai';
+}
+
+function status(text, isError=false){
+  const node = $('status');
+  node.textContent = text || '';
+  node.className = isError ? 'status error' : 'status';
+}
+
+function renderCategoryOptions(){
+  const categorySelect = $('category');
+  const selected = categorySelect.value || 'winning_lesson';
+  categorySelect.innerHTML = CATEGORY_ORDER.map((key)=>{
+    const label = (currentData.categories[key] || FALLBACK_CATEGORIES[key]).label;
+    return `<option value="${key}">${escapeHTML(label)}</option>`;
+  }).join('');
+  categorySelect.value = currentData.categories[selected] ? selected : 'winning_lesson';
+}
+
+function render(){
+  renderCategoryOptions();
+  const categories = currentData.categories || FALLBACK_CATEGORIES;
+  const byCategory = currentData.by_category || {};
+  const grid = $('memory-grid');
+  grid.innerHTML = CATEGORY_ORDER.map((key)=>{
+    const meta = categories[key] || FALLBACK_CATEGORIES[key];
+    const items = byCategory[key] || [];
+    const cards = items.length ? items.map(renderCard).join('') : '<div class="empty">No memories in this bucket yet.</div>';
+    return `
+      <section class="bucket">
+        <div class="bucket-head">
+          <div>
+            <div class="bucket-title">${escapeHTML(meta.label)}</div>
+            <div class="bucket-desc">${escapeHTML(meta.description)}</div>
+          </div>
+          <div class="count">${items.length}</div>
+        </div>
+        ${cards}
+      </section>
+    `;
+  }).join('');
+
+  const total = (currentData.items || []).length;
+  const editable = currentData.editable !== false;
+  $('memory-meta').textContent = `${total} active memories · updated ${fmtTime(currentData.updated_at)} · ${editable ? 'editable' : 'read-only'}`;
+  $('memory-form').querySelectorAll('input,select,textarea,button').forEach((node)=>{
+    if(node.id !== 'new-button') node.disabled = !editable;
+  });
+  $('archive-button').disabled = !editable || !selectedMemory;
+}
+
+function renderCard(item){
+  const tags = (item.tags || []).map((tag)=>`<span class="chip">${escapeHTML(tag)}</span>`).join('');
+  const statusClass = escapeHTML(item.status || 'active');
+  const moduleText = [item.module_id, item.strategy_id].filter(Boolean).join(' / ') || 'manual memory';
+  return `
+    <article class="card">
+      <h3>${escapeHTML(item.title)}</h3>
+      <p class="lesson">${escapeHTML(item.lesson)}</p>
+      ${item.evidence ? `<p class="evidence">${escapeHTML(item.evidence)}</p>` : ''}
+      <div class="chips">
+        <span class="chip ${statusClass}">${escapeHTML(item.status || 'active')}</span>
+        <span class="chip">confidence ${Number(item.confidence || 0).toFixed(2)}</span>
+        <span class="chip">impact ${Number(item.impact || 0).toFixed(2)}</span>
+        ${tags}
+      </div>
+      <div class="card-footer">
+        <span class="small">${escapeHTML(moduleText)}</span>
+        <button class="link-button" type="button" onclick="editMemory('${escapeHTML(item.id)}')">Edit</button>
+      </div>
+    </article>
+  `;
+}
+
+function resetForm(){
+  selectedMemory = null;
+  $('editor-title').textContent = 'Add memory';
+  $('memory-id').value = '';
+  $('category').value = 'winning_lesson';
+  $('status-field').value = 'active';
+  $('title').value = '';
+  $('lesson').value = '';
+  $('evidence').value = '';
+  $('recommendation').value = '';
+  $('module-id').value = '';
+  $('strategy-id').value = '';
+  $('confidence').value = '0.65';
+  $('impact').value = '0.50';
+  $('tags').value = '';
+  $('archive-button').disabled = true;
+  status('');
+}
+
+function editMemory(id){
+  const item = (currentData.items || []).find((candidate)=>candidate.id === id);
+  if(!item) return;
+  selectedMemory = item;
+  $('editor-title').textContent = 'Edit memory';
+  $('memory-id').value = item.id || '';
+  $('category').value = item.category || 'winning_lesson';
+  $('status-field').value = item.status || 'active';
+  $('title').value = item.title || '';
+  $('lesson').value = item.lesson || '';
+  $('evidence').value = item.evidence || '';
+  $('recommendation').value = item.recommendation || '';
+  $('module-id').value = item.module_id || '';
+  $('strategy-id').value = item.strategy_id || '';
+  $('confidence').value = item.confidence ?? '0.65';
+  $('impact').value = item.impact ?? '0.50';
+  $('tags').value = (item.tags || []).join(', ');
+  $('archive-button').disabled = currentData.editable === false;
+  status(`Editing ${item.id}`);
+}
+
+function collectForm(){
+  return {
+    id:$('memory-id').value || undefined,
+    client_id:getClient(),
+    category:$('category').value,
+    status:$('status-field').value,
+    title:$('title').value,
+    lesson:$('lesson').value,
+    evidence:$('evidence').value,
+    recommendation:$('recommendation').value,
+    module_id:$('module-id').value,
+    strategy_id:$('strategy-id').value,
+    confidence:Number($('confidence').value || 0.65),
+    impact:Number($('impact').value || 0.5),
+    tags:$('tags').value
+  };
+}
+
+async function loadMemory(){
+  status('Loading memory...');
+  try{
+    const res = await fetch(`/api/gbrain_memory?client=${encodeURIComponent(getClient())}`);
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || `Request failed with ${res.status}`);
+    currentData = data;
+    render();
+    status('');
+  }catch(err){
+    $('memory-grid').innerHTML = '<div class="empty">Memory could not be loaded. Check the API route and persistence credentials.</div>';
+    status(err.message || String(err), true);
+  }
+}
+
+async function saveMemory(event){
+  event.preventDefault();
+  status('Saving memory...');
+  try{
+    const res = await fetch('/api/gbrain_memory',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({client_id:getClient(),memory:collectForm()})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || `Save failed with ${res.status}`);
+    currentData = data;
+    const savedId = $('memory-id').value;
+    render();
+    if(savedId) editMemory(savedId);
+    else resetForm();
+    status('Saved.');
+  }catch(err){
+    status(err.message || String(err), true);
+  }
+}
+
+async function archiveSelected(){
+  if(!selectedMemory) return;
+  status('Archiving memory...');
+  try{
+    const res = await fetch('/api/gbrain_memory',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({client_id:getClient(),operation:'archive',id:selectedMemory.id})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || `Archive failed with ${res.status}`);
+    currentData = data;
+    resetForm();
+    render();
+    status('Archived.');
+  }catch(err){
+    status(err.message || String(err), true);
+  }
+}
+
+$('client-select').addEventListener('change',()=>{resetForm();loadMemory();});
+$('refresh-button').addEventListener('click',loadMemory);
+$('new-button').addEventListener('click',resetForm);
+$('archive-button').addEventListener('click',archiveSelected);
+$('memory-form').addEventListener('submit',saveMemory);
+renderCategoryOptions();
+loadMemory();
+</script>
+</body>
+</html>

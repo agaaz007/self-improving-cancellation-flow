@@ -20,10 +20,20 @@ from cta_autoresearch.cancel_policy import (
     CancelOutcomeV1,
     CancelPolicyRuntime,
 )
+from cta_autoresearch.gbrain_memory import (
+    FileGBrainMemoryStore,
+    archive_memory,
+    summarize_memory,
+    upsert_memory,
+)
 
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="CTA Bandit", version="0.1.0")
+
+_DASHBOARD_DIR = Path(__file__).parent.parent.parent / "dashboard"
+if _DASHBOARD_DIR.exists():
+    app.mount("/dashboard-static", StaticFiles(directory=_DASHBOARD_DIR), name="dashboard-static")
 
 _STATE_DIR = Path(os.environ.get("BANDIT_STATE_DIR", "serving_data/policy"))
 _runtime: CancelPolicyRuntime | None = None
@@ -111,6 +121,48 @@ async def reload() -> JSONResponse:
     _runtime = None
     runtime = _get_runtime()
     return JSONResponse({"status": "reloaded", "policy_version": runtime.state.get("policy_version")})
+
+
+def _get_gbrain_store() -> FileGBrainMemoryStore:
+    path = Path(os.environ.get("GBRAIN_MEMORY_PATH", "serving_data/gbrain_memory.json"))
+    return FileGBrainMemoryStore(path)
+
+
+@app.get("/api/gbrain_memory")
+@app.get("/api/gbrain-memory")
+async def api_gbrain_memory(client: str = "jungle_ai") -> JSONResponse:
+    """Visible GBrain memory grouped by lesson category."""
+    client_id = str(client or "jungle_ai")
+    items = _get_gbrain_store().load(client_id)
+    return JSONResponse(summarize_memory(items, client_id=client_id))
+
+
+@app.post("/api/gbrain_memory")
+@app.post("/api/gbrain-memory")
+async def update_gbrain_memory(request: Request) -> JSONResponse:
+    """Create, update, or archive a visible GBrain memory item."""
+    body = await request.json()
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=422, detail="request body must be an object")
+
+    payload = body.get("memory") if isinstance(body.get("memory"), dict) else body
+    client_id = str(body.get("client_id") or payload.get("client_id") or body.get("client") or "jungle_ai")
+    operation = str(body.get("operation") or body.get("action") or "upsert").strip().lower()
+
+    store = _get_gbrain_store()
+    items = store.load(client_id)
+    if operation == "archive":
+        memory_id = str(body.get("id") or payload.get("id") or "").strip()
+        if not memory_id:
+            raise HTTPException(status_code=422, detail="id is required to archive a memory")
+        items = archive_memory(items, memory_id, client_id=client_id)
+    else:
+        items = upsert_memory(items, payload, client_id=client_id)
+    store.save(client_id, items)
+
+    summary = summarize_memory(items, client_id=client_id)
+    summary["status"] = "saved"
+    return JSONResponse(summary)
 
 
 # ---------------------------------------------------------------------------
@@ -235,10 +287,19 @@ async def api_recent_outcomes() -> JSONResponse:
 @app.get("/dashboard")
 async def dashboard() -> HTMLResponse:
     """Serve the monitoring dashboard."""
-    dashboard_path = Path(__file__).parent.parent.parent / "dashboard" / "monitor.html"
+    dashboard_path = _DASHBOARD_DIR / "monitor.html"
     if not dashboard_path.exists():
         raise HTTPException(status_code=404, detail="Dashboard not found")
     return HTMLResponse(dashboard_path.read_text())
+
+
+@app.get("/gbrain-memory")
+async def gbrain_memory_page() -> HTMLResponse:
+    """Serve the editable GBrain memory page."""
+    page_path = _DASHBOARD_DIR / "gbrain-memory.html"
+    if not page_path.exists():
+        raise HTTPException(status_code=404, detail="GBrain memory page not found")
+    return HTMLResponse(page_path.read_text())
 
 
 def main() -> None:

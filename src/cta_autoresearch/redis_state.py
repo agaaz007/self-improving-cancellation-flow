@@ -70,3 +70,14 @@ def save_outcome(client_id: str, outcome: dict) -> None:
 def recent_outcomes(client_id: str, n: int = 30) -> list[dict]:
     raw = _cmd("LRANGE", f"olog:{client_id}", "0", str(n - 1))
     return [json.loads(r) for r in (raw or [])]
+
+
+# -- GBrain memory --
+
+def get_gbrain_memory(client_id: str) -> list[dict] | None:
+    raw = _cmd("GET", f"gbrain:{client_id}")
+    return json.loads(raw) if raw else None
+
+
+def set_gbrain_memory(client_id: str, items: list[dict]) -> None:
+    _cmd("SET", f"gbrain:{client_id}", json.dumps(items, separators=(",", ":")))

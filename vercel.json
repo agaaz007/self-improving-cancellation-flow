@@ -4,7 +4,9 @@
     {"src": "api/jungle_present_offers.py", "use": "@vercel/python"},
     {"src": "api/record_outcome.py", "use": "@vercel/python"},
     {"src": "api/dashboard_data.py", "use": "@vercel/python"},
-    {"src": "api/dashboard.py", "use": "@vercel/python"}
+    {"src": "api/dashboard.py", "use": "@vercel/python"},
+    {"src": "api/gbrain_memory.py", "use": "@vercel/python"},
+    {"src": "api/gbrain_memory_page.py", "use": "@vercel/python"}
   ],
   "routes": [
     {"src": "/api/zeo_present_offers", "dest": "/api/zeo_present_offers.py"},
@@ -12,6 +14,9 @@
     {"src": "/api/record_outcome", "dest": "/api/record_outcome.py"},
     {"src": "/api/dashboard_data", "dest": "/api/dashboard_data.py"},
     {"src": "/api/dashboard", "dest": "/api/dashboard.py"},
-    {"src": "/monitor", "dest": "/api/dashboard.py"}
+    {"src": "/api/gbrain_memory", "dest": "/api/gbrain_memory.py"},
+    {"src": "/api/gbrain-memory", "dest": "/api/gbrain_memory.py"},
+    {"src": "/monitor", "dest": "/api/dashboard.py"},
+    {"src": "/gbrain-memory", "dest": "/api/gbrain_memory_page.py"}
   ]
 }
