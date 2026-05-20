@@ -195,6 +195,25 @@ def test_dashboard_api_generation():
 
 
 
+def test_jungle_experiment_spec_endpoint():
+    client = _client()
+    resp = client.post("/api/jungle/experiment-spec", json={
+        "client_id": "jungle_ai",
+        "surface": "paywall",
+        "target_segment": "high_intent_learners",
+        "research_run_ids": ["run_test_001"],
+        "generate_variants": 3,
+    })
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["spec_version"] == "jungle_experiment_ui_spec_v1"
+    assert data["experiment"]["variant"] == "progress_recap_value_proof"
+    assert data["strategy"]["primary_strategy"] == "progress_recap_plus_value_proof"
+    assert data["validation"]["is_ready"] is True
+    assert "progress_recap" in {section["id"] for section in data["ui_requirements"]["sections"]}
+    assert "fake countdown" in data["ui_requirements"]["copy_constraints"]["must_not_include"]
+
+
 def test_gbrain_memory_endpoint_seeds_visible_categories():
     client = _client()
     resp = client.get("/api/gbrain_memory?client=jungle_ai")

@@ -26,6 +26,7 @@ from cta_autoresearch.gbrain_memory import (
     summarize_memory,
     upsert_memory,
 )
+from cta_autoresearch.jungle_experiment_spec import build_jungle_experiment_spec
 
 logger = logging.getLogger(__name__)
 
@@ -163,6 +164,19 @@ async def update_gbrain_memory(request: Request) -> JSONResponse:
     summary = summarize_memory(items, client_id=client_id)
     summary["status"] = "saved"
     return JSONResponse(summary)
+
+
+@app.post("/api/jungle_experiment_spec")
+@app.post("/api/jungle/experiment-spec")
+@app.post("/api/jungle-experiment-spec")
+async def jungle_experiment_spec(request: Request) -> JSONResponse:
+    """Build a UI-generation-ready JSON spec for the next Jungle paywall experiment."""
+    body = await request.json()
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=422, detail="request body must be an object")
+    client_id = str(body.get("client_id") or "jungle_ai")
+    memory_items = _get_gbrain_store().load(client_id)
+    return JSONResponse(build_jungle_experiment_spec(body, memory_items=memory_items))
 
 
 # ---------------------------------------------------------------------------
